@@ -5,9 +5,59 @@
   --wood-dark: #a88657;
   --piece-color: #413326;
   width: 100%;
-  max-width: 560px;
+  max-width: 1040px;
   margin-inline: auto;
   color: #292c26;
+}
+
+.shogi-turn {
+  margin: 0 0 12px;
+  font-weight: 650;
+}
+
+.shogi-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 560px) minmax(220px, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.shogi-board-column {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.shogi-side-panel {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #d8c5a4;
+  border-radius: 12px;
+  background: #fbf7ee;
+  box-shadow: 0 5px 16px #59442b12;
+}
+
+.shogi-panel-section {
+  padding: 12px;
+  border: 1px solid #e4d6bd;
+  border-radius: 9px;
+  background: #fffdf8;
+}
+
+.shogi-panel-section h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.shogi-panel-section p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.muted-message {
+  color: #777164;
 }
 
 .player-label {
@@ -66,9 +116,7 @@
   padding: 9px;
   background: #b99a6c;
   border: 1px solid #a78a5f;
-  box-shadow:
-    0 4px 0 #a78a5f,
-    0 12px 24px #59442b12;
+  box-shadow: 0 4px 0 #a78a5f, 0 12px 24px #59442b12;
 }
 
 .board-coordinates {
@@ -120,6 +168,7 @@
   border-right: 1px solid #8e704a;
   border-bottom: 1px solid #8e704a;
   background: var(--wood-light);
+  cursor: pointer;
 }
 
 .shogi-piece {
@@ -158,30 +207,210 @@
   }
 }
 
+.shogi-square.selected-sente {
+  background: #bfdbfe;
+  box-shadow: inset 0 0 0 3px #2563eb;
+}
+
+.shogi-square.selected-gote {
+  background: #fecaca;
+  box-shadow: inset 0 0 0 3px #dc2626;
+}
+
+.shogi-hand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--wood-light, #b58863);
+  border-radius: 8px;
+  background: #fffaf0;
+}
+
+.shogi-hand.sente {
+  border-left: 4px solid #2563eb;
+}
+
+.shogi-hand.gote {
+  border-left: 4px solid #dc2626;
+}
+
+.shogi-hand-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.shogi-hand-piece {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border: 1px solid #8e704a;
+  border-radius: 5px;
+  background: #f0d9b5;
+  color: #222;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.shogi-hand-piece:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.shogi-hand-piece.selected {
+  outline: 3px solid #2563eb;
+  background: #bfdbfe;
+}
+
+.shogi-hand-piece small {
+  font-size: 0.75rem;
+}
+
+.shogi-hand-empty {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.shogi-message {
+  min-height: 1.5em;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.promotion-choice p {
+  margin-bottom: 12px;
+}
+
+.promotion-buttons {
+  display: grid;
+  gap: 8px;
+}
+
+.promotion-buttons button {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #2459a9;
+  border-radius: 7px;
+  background: #2563eb;
+  color: white;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.promotion-buttons .secondary-promotion {
+  border-color: #b9ad98;
+  background: #f5efe4;
+  color: #413326;
+}
+
+.promotion-buttons button:hover {
+  filter: brightness(0.96);
+}
+
+.promotion-buttons button:focus-visible,
+.shogi-hand-piece:focus-visible,
+.shogi-square:focus-visible {
+  outline: 3px solid #0f766e;
+  outline-offset: 2px;
+}
+
+/* Coordenadas visibles del tablero */
+
+.shogi-board-coordinate-frame {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+
+.shogi-file-coordinates {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  align-items: center;
+  padding-bottom: 5px;
+  color: #55442f;
+  font-family: serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.shogi-board-and-ranks {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 4px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.shogi-rank-coordinates {
+  display: grid;
+  grid-template-rows: repeat(9, minmax(0, 1fr));
+  align-items: center;
+  justify-items: center;
+  color: #55442f;
+  font-family: serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.shogi-board-and-ranks .shogi-grid {
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1;
+}
+
+@media (max-width: 759px) {
+  .shogi-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .shogi-board-column {
+    width: 100%;
+  }
+
+  .shogi-side-panel {
+    grid-row: 2;
+  }
+
+  .shogi-game {
+    max-width: 560px;
+  }
+}
+
 @media (max-width: 420px) {
-  .board-frame {
-    padding: 5px;
+  .shogi-hand {
+    padding: 7px;
+    gap: 7px;
   }
 
-  .board-middle {
-    grid-template-columns: 11px minmax(0, 1fr);
-    gap: 2px;
+  .shogi-hand-piece {
+    padding: 5px 8px;
   }
 
-  .board-coordinates {
-    font-size: 8px;
+  .shogi-side-panel {
+    padding: 9px;
   }
 
-  .top-coordinates {
-    padding-bottom: 4px;
+  .shogi-panel-section {
+    padding: 10px;
   }
 
-  .bottom-coordinates {
-    padding-top: 4px;
+  .shogi-board-coordinate-frame,
+  .shogi-board-and-ranks {
+    grid-template-columns: 18px minmax(0, 1fr);
   }
 
-  .turn-indicator {
-    padding: 6px;
-    font-size: 8px;
+  .shogi-file-coordinates,
+  .shogi-rank-coordinates {
+    font-size: 11px;
   }
 }
