@@ -1,5 +1,6 @@
 
 import './App.css'
+import ShogiBoard from './components/ShogiBoard'
 
 const sections = [
   { icon: '⌂', label: 'Inicio', active: true },
@@ -155,6 +156,23 @@ function App() {
               </article>
             ))}
           </div>
+        </section>
+
+        <section className="board-section" id="tablero">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">TU PRIMER TABLERO</span>
+              <h2>Conoce el campo de juego</h2>
+            </div>
+            <span className="section-counter">9 × 9</span>
+          </div>
+
+          <p className="board-intro">
+            Cada partida comienza aquí. Familiarízate con las piezas y su
+            posición inicial antes de dar tu primer movimiento.
+          </p>
+
+          <ShogiBoard />
         </section>
 
         <footer className="page-footer">
