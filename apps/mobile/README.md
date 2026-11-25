@@ -7,9 +7,11 @@ web, así que las reglas, la IA, las lecciones y los problemas son idénticos.
 ## Pantallas
 
 - **Inicio:** progreso y guía de piezas.
-- **Aprender:** las 9 lecciones guiadas.
-- **Problemas:** los 15 tsume (mate en 1 y en 3).
+- **Aprender:** las 12 lecciones guiadas.
+- **Problemas:** los 20 tsume (mate en 1, 3 y 5).
 - **Jugar:** partida contra la máquina (3 niveles), deshacer, guardado automático.
+- **En línea** (con servidor): crear o unirse a partidas con código; se puede
+  jugar contra alguien que use la web.
 
 El progreso se guarda en el dispositivo con AsyncStorage, en el mismo formato
 que la web y el backend.

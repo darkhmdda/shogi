@@ -41,7 +41,7 @@ const features = [
   {
     number: '01',
     title: 'Aprende a jugar',
-    description: 'Nueve lecciones interactivas: de mover tu primer peón a dar jaque mate.',
+    description: 'Doce lecciones interactivas: de mover tu primer peón a construir un castillo y atacar.',
     icon: '駒',
     action: 'Empezar las lecciones',
     href: '#aprender',
@@ -49,7 +49,7 @@ const features = [
   {
     number: '02',
     title: 'Resuelve problemas',
-    description: 'Problemas de mate (tsume) en una y en tres jugadas, con pistas y soluciones.',
+    description: 'Veinte problemas de mate (tsume) en una, tres y cinco jugadas, con pistas y soluciones.',
     icon: '歩',
     action: 'Resolver problemas',
     href: '#problemas',
@@ -57,7 +57,7 @@ const features = [
   {
     number: '03',
     title: 'Juega una partida',
-    description: 'Juega contra la máquina en tres niveles o contra un amigo en el mismo dispositivo.',
+    description: 'Contra la máquina en tres niveles, contra un amigo en el mismo dispositivo o en línea.',
     icon: '王',
     action: 'Jugar ahora',
     href: '#tablero',
@@ -253,7 +253,7 @@ function App() {
 
           <p className="board-intro">
             Los tsume son la mejor forma de mejorar: encuentra el jaque mate en
-            una o en tres jugadas. Todos los problemas están verificados por el
+            una, tres o cinco jugadas. Todos los problemas están verificados por el
             motor.
           </p>
 

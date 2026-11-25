@@ -36,6 +36,8 @@ type Props = {
   onHand: (kind: HandKind) => void
   hideHand?: Owner
   handLabel?: (owner: Owner) => string
+  /** Ver el tablero desde el lado de Gote. */
+  flipped?: boolean
 }
 
 /** Tablero táctil de 9×9 con coordenadas y manos. */
@@ -50,7 +52,10 @@ export function Board({
   onHand,
   hideHand,
   handLabel,
+  flipped = false,
 }: Props) {
+  const rows = flipped ? [...INDICES].reverse() : INDICES
+  const cols = flipped ? [...INDICES].reverse() : INDICES
   const { width } = useWindowDimensions()
   const boardWidth = Math.min(width, 520) - spacing.lg * 2 - 18
   const cell = Math.floor(boardWidth / 9)
@@ -93,11 +98,11 @@ export function Board({
 
   return (
     <View style={styles.wrapper}>
-      {renderHand('gote')}
+      {renderHand(flipped ? 'sente' : 'gote')}
 
       <View>
         <View style={[styles.fileRow, { marginLeft: 18 }]}>
-          {INDICES.map((col) => (
+          {cols.map((col) => (
             <Text key={col} style={[styles.coord, { width: cell }]}>
               {FILE_LABELS[col]}
             </Text>
@@ -105,16 +110,16 @@ export function Board({
         </View>
         <View style={styles.boardRow}>
           <View>
-            {INDICES.map((row) => (
+            {rows.map((row) => (
               <Text key={row} style={[styles.coord, styles.rankCoord, { height: cell, lineHeight: cell }]}>
                 {RANK_LABELS[row]}
               </Text>
             ))}
           </View>
           <View style={styles.grid}>
-            {INDICES.map((row) => (
+            {rows.map((row) => (
               <View key={row} style={styles.row}>
-                {INDICES.map((col) => {
+                {cols.map((col) => {
                   const square = { row, col }
                   const piece = position.board[row][col]
                   const selected = selection?.type === 'square' && sameSquare(selection.square, square)
@@ -149,7 +154,7 @@ export function Board({
                           style={[
                             styles.piece,
                             { width: cell * 0.84, height: cell * 0.9 },
-                            piece.owner === 'gote' && styles.upsideDown,
+                            (piece.owner === 'gote') !== flipped && styles.upsideDown,
                           ]}
                         >
                           <Text
@@ -178,7 +183,7 @@ export function Board({
         </View>
       </View>
 
-      {renderHand('sente')}
+      {renderHand(flipped ? 'gote' : 'sente')}
     </View>
   )
 }

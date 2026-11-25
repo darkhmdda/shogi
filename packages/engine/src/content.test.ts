@@ -15,7 +15,7 @@ describe('problemas de tsume', () => {
       const line = solveMate(position, tsume.plies)
       expect(line).not.toBeNull()
       expect(line!.length).toBe(tsume.plies)
-      if (tsume.plies === 3) expect(solveMate(position, 1)).toBeNull()
+      if (tsume.plies > 1) expect(solveMate(position, tsume.plies - 2)).toBeNull()
     })
   }
 })

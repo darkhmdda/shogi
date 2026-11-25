@@ -1,9 +1,8 @@
 import './Training.css'
 import { describeMove, emptyBoard, emptyHands, formatMove, isCheck, OWNER_LABEL, type Owner, type Position } from '@shogi/engine'
-import { useMoveInput } from '@shogi/react'
+import { useMoveInput, useOnlineGame } from '@shogi/react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { getClient, useAccount, type OnlineState } from '../api'
-import { useOnlineGame } from '../hooks/useOnlineGame'
 import BoardView, { PromotionChoice } from './BoardView'
 
 const emptyPosition: Position = { board: emptyBoard(), hands: emptyHands(), turn: 'sente' }
@@ -32,7 +31,7 @@ export default function OnlinePlay() {
   const [lobbyError, setLobbyError] = useState<string | null>(null)
   const [myGames, setMyGames] = useState<OnlineState[]>([])
   const [message, setMessage] = useState<string | null>(null)
-  const online = useOnlineGame(code)
+  const online = useOnlineGame(getClient(), code)
 
   useEffect(() => {
     const client = getClient()

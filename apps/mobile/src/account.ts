@@ -27,6 +27,11 @@ const client = API_URL
   ? createApiClient({ baseUrl: API_URL, getToken: () => account?.token ?? null, onUnauthorized: () => setAccount(null) })
   : null
 
+/** Cliente de la API (null si no hay servidor configurado). */
+export function getClient() {
+  return client
+}
+
 function subscribe(listener: () => void) {
   listeners.add(listener)
   return () => {

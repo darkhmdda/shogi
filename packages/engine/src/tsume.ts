@@ -4,8 +4,8 @@ import type { Position } from './types'
 
 export type Tsume = {
   id: string
-  /** Número de medias jugadas del mate (1 o 3). */
-  plies: 1 | 3
+  /** Número de medias jugadas del mate (1, 3 o 5). */
+  plies: 1 | 3 | 5
   title: string
   hint: string
   /** Posición del atacante (Sente). El resto de piezas va a la mano del defensor. */
@@ -28,6 +28,11 @@ export const TSUME: Tsume[] = [
   { id: 'm3-silver-lance', plies: 3, title: 'Plata y lanza', sfen: '9/k8/l1G6/9/9/9/9/9/9 b SL 1', hint: 'La plata da jaque desde una casilla que el rey no puede tomar.' },
   { id: 'm3-knight', plies: 3, title: 'Caballo y alfil', sfen: '3bk4/4r4/4B4/5+N3/9/9/9/9/9 b SN 1', hint: 'El caballo obliga al rey a moverse; después decide el alfil.' },
   { id: 'm3-gold-back', plies: 3, title: 'Oro por detrás', sfen: '2k6/3r5/3+B+L4/9/9/9/9/9/9 b GS 1', hint: 'Coloca el oro en la fila de fondo.' },
+  { id: 'm5-silver-net', plies: 5, title: 'Red de plata', sfen: '9/1k7/9/n8/BN1g5/9/9/9/9 b SN 1', hint: 'Empieza con el caballo: saltar y promocionar da jaque.' },
+  { id: 'm5-lance-finish', plies: 5, title: 'La lanza remata', sfen: 'k8/b8/n1g6/b1B6/1L7/9/9/9/9 b LP 1', hint: 'Captura el alfil que protege al rey y promociona.' },
+  { id: 'm5-bishop-chase', plies: 5, title: 'Persecución con alfil', sfen: 'k8/1n7/s+B7/9/+L8/9/9/9/9 b BP 1', hint: 'Un peón colocado da jaque sin ser mate, así que está permitido.' },
+  { id: 'm5-golden-cage', plies: 5, title: 'Jaula de oro', sfen: '9/2k6/1n1n5/p2BN4/1l7/9/9/9/9 b GP 1', hint: 'El oro desde la mano empuja al rey hacia el centro.' },
+  { id: 'm5-knight-silver', plies: 5, title: 'Caballo y plata', sfen: '7bk/9/8n/7G1/6+B2/9/9/9/9 b SN 1', hint: 'Un caballo colocado no se puede tapar.' },
 ]
 
 export function tsumePosition(tsume: Tsume): Position {

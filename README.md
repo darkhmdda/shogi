@@ -13,16 +13,17 @@ Crear una aplicación que permita a principiantes aprender las reglas del shōgi
 - Partidas contra la máquina (tres niveles) o entre dos personas, con todas
   las reglas: promoción, colocaciones, nifu, uchifuzume, jaque mate,
   sennichite, jaque perpetuo e impasse (jishōgi, regla de 27 puntos).
-- Nueve lecciones guiadas con objetivos que comprueba el motor.
-- Quince problemas de mate (tsume) en 1 y en 3 jugadas, verificados por un
+- Doce lecciones guiadas (de las reglas básicas a aperturas, castillos y ataque) con objetivos que comprueba el motor.
+- Veinte problemas de mate (tsume) en 1, 3 y 5 jugadas, verificados por un
   solucionador propio.
 - Guía de piezas, explicaciones de jugadas ilegales, pistas de la máquina.
 - Registro kifu, exportación KIF, importación/exportación SFEN y guardado
   automático de la partida.
 - Progreso local y, con cuenta, sincronizado con el servidor.
 
-**Partidas en línea:** dos personas juegan desde la web con un código de
-partida; las jugadas llegan en tiempo real y el servidor valida cada una.
+**Partidas en línea:** dos personas juegan con un código de partida, desde la
+web o desde el móvil (también entre sí); las jugadas llegan en tiempo real y
+el servidor valida cada una.
 
 **Backend** (`backend`): API FastAPI con cuentas, sincronización del progreso
 (fusión sin pérdida de datos entre dispositivos), partidas guardadas y
@@ -85,9 +86,10 @@ PostgreSQL.
 
 ## Estado del proyecto
 
-En desarrollo. Web completa con partidas en línea; app móvil, backend y base
-de datos operativos y sincronizados entre sí. Pendiente: partidas en línea en
-la app móvil, más contenido y despliegue público.
+En desarrollo. Web y app móvil con todas las funciones (aprender, problemas,
+jugar contra la máquina y en línea, cuenta sincronizada); backend y base de
+datos operativos. Pendiente: despliegue público, pruebas en dispositivos
+reales y pulido final.
 
 ## Licencia
 

@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@shogi/engine": "*"
+    "@shogi/engine": "*",
+    "@shogi/api": "*"
   },
   "peerDependencies": {
     "react": ">=19"

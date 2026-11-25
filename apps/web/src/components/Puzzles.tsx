@@ -86,9 +86,10 @@ export default function Puzzles() {
         status: 'playing',
         moves: [...moves, replyText],
       })
+      const left = Math.ceil((tsume.plies - played - 1) / 2)
       setMessage(
         canStillMate
-          ? `El defensor juega ${replyText}. Te queda una jugada para dar mate.`
+          ? `El defensor juega ${replyText}. ${left === 1 ? 'Te queda una jugada' : `Te quedan ${left} jugadas`} para dar mate.`
           : `El defensor juega ${replyText} y ya no hay mate posible. Pulsa "Reintentar".`,
       )
     }, 450)
@@ -120,6 +121,7 @@ export default function Puzzles() {
   const groups: { label: string; items: Tsume[] }[] = [
     { label: 'Mate en 1 (1手詰)', items: TSUME.filter((t) => t.plies === 1) },
     { label: 'Mate en 3 (3手詰)', items: TSUME.filter((t) => t.plies === 3) },
+    { label: 'Mate en 5 (5手詰)', items: TSUME.filter((t) => t.plies === 5) },
   ]
 
   return (
@@ -177,7 +179,13 @@ export default function Puzzles() {
         </span>
         <h3>{tsume.title}</h3>
         <p className="training-instruction">
-          Da jaque mate en {tsume.plies === 1 ? 'una jugada' : 'tres jugadas (tú, el defensor, tú)'}.
+          Da jaque mate en{' '}
+          {tsume.plies === 1
+            ? 'una jugada'
+            : tsume.plies === 3
+              ? 'tres jugadas (tú, el defensor, tú)'
+              : 'cinco jugadas: tres tuyas y dos del defensor'}
+          .
         </p>
 
         {input.pending && (

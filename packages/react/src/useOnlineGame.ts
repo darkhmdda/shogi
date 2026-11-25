@@ -1,24 +1,23 @@
+import type { ApiClient, OnlineState } from '@shogi/api'
 import { deserializeGame, toUsi, type GameState, type Move } from '@shogi/engine'
 import { useEffect, useMemo, useState } from 'react'
-import { getClient, type OnlineState } from '../api'
 
 /**
  * Sigue una partida en línea: recibe el estado por WebSocket (con consulta
  * periódica como respaldo) y envía las jugadas al servidor, que las valida.
  */
-export function useOnlineGame(code: string | null) {
+export function useOnlineGame(client: ApiClient | null, code: string | null) {
   const [state, setState] = useState<OnlineState | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const [connected, setConnected] = useState(false)
 
   useEffect(() => {
-    const client = getClient()
     if (!code || !client) return
 
     let active = true
     let socket: WebSocket | null = null
-    let poll: number | undefined
+    let poll: ReturnType<typeof setInterval> | undefined
 
     // El WebSocket no conoce el lado del jugador: se conserva el de la API REST.
     const update = (next: OnlineState) => {
@@ -27,8 +26,8 @@ export function useOnlineGame(code: string | null) {
     }
 
     const startPolling = () => {
-      window.clearInterval(poll)
-      poll = window.setInterval(() => {
+      clearInterval(poll)
+      poll = setInterval(() => {
         client.online.get(code).then(update).catch(() => {})
       }, 3000)
     }
@@ -43,9 +42,9 @@ export function useOnlineGame(code: string | null) {
       socket.onopen = () => {
         if (!active) return
         setConnected(true)
-        window.clearInterval(poll)
+        clearInterval(poll)
       }
-      socket.onmessage = (event) => update(JSON.parse(event.data as string) as OnlineState)
+      socket.onmessage = (event) => update(JSON.parse(String(event.data)) as OnlineState)
       socket.onclose = () => {
         if (!active) return
         setConnected(false)
@@ -56,18 +55,18 @@ export function useOnlineGame(code: string | null) {
     }
 
     // Mantiene viva la conexión a través de proxies.
-    const ping = window.setInterval(() => socket?.readyState === WebSocket.OPEN && socket.send('ping'), 30_000)
+    const ping = setInterval(() => socket?.readyState === WebSocket.OPEN && socket.send('ping'), 30_000)
 
     return () => {
       active = false
-      window.clearInterval(poll)
-      window.clearInterval(ping)
+      clearInterval(poll)
+      clearInterval(ping)
       socket?.close()
       setState(null)
       setError(null)
       setConnected(false)
     }
-  }, [code])
+  }, [client, code])
 
   const game = useMemo<GameState | null>(() => {
     if (!state) return null
@@ -79,7 +78,6 @@ export function useOnlineGame(code: string | null) {
   }, [state])
 
   async function sendMove(move: Move) {
-    const client = getClient()
     if (!client || !state || !code) return
     setSending(true)
     setError(null)
@@ -95,7 +93,6 @@ export function useOnlineGame(code: string | null) {
   }
 
   async function resign() {
-    const client = getClient()
     if (!client || !code) return
     try {
       setState(await client.online.resign(code))

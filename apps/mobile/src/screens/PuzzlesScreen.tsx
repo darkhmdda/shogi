@@ -78,7 +78,7 @@ export function PuzzlesScreen() {
       setState({ ...waiting, position, played: played + 1, lastMove: reply, status: 'playing', moves: [...moves, text] })
       setMessage(
         solveMate(position, tsume.plies - played - 1)
-          ? `El defensor juega ${text}. Te queda una jugada.`
+          ? `El defensor juega ${text}. ${Math.ceil((tsume.plies - played - 1) / 2) === 1 ? 'Te queda una jugada' : `Te quedan ${Math.ceil((tsume.plies - played - 1) / 2)} jugadas`}.`
           : `El defensor juega ${text} y ya no hay mate. Reintenta.`,
       )
     }, 400)

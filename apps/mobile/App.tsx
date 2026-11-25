@@ -5,20 +5,26 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { API_URL, loadAccount } from './src/account'
 import { loadProgress } from './src/progress'
 import { AccountScreen } from './src/screens/AccountScreen'
+import { OnlineScreen } from './src/screens/OnlineScreen'
 import { HomeScreen } from './src/screens/HomeScreen'
 import { LessonsScreen } from './src/screens/LessonsScreen'
 import { PlayScreen } from './src/screens/PlayScreen'
 import { PuzzlesScreen } from './src/screens/PuzzlesScreen'
 import { colors } from './src/theme'
 
-type Tab = 'home' | 'lessons' | 'puzzles' | 'play' | 'account'
+type Tab = 'home' | 'lessons' | 'puzzles' | 'play' | 'online' | 'account'
 
 const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: 'home', icon: '⌂', label: 'Inicio' },
   { id: 'lessons', icon: '書', label: 'Aprender' },
   { id: 'puzzles', icon: '詰', label: 'Problemas' },
   { id: 'play', icon: '対', label: 'Jugar' },
-  ...(API_URL ? [{ id: 'account' as const, icon: '人', label: 'Cuenta' }] : []),
+  ...(API_URL
+    ? [
+        { id: 'online' as const, icon: '網', label: 'En línea' },
+        { id: 'account' as const, icon: '人', label: 'Cuenta' },
+      ]
+    : []),
 ]
 
 export default function App() {
@@ -46,6 +52,7 @@ export default function App() {
           {tab === 'lessons' && <LessonsScreen />}
           {tab === 'puzzles' && <PuzzlesScreen />}
           {tab === 'play' && <PlayScreen />}
+          {tab === 'online' && <OnlineScreen onNeedAccount={() => setTab('account')} />}
           {tab === 'account' && <AccountScreen />}
         </View>
       </SafeAreaView>

@@ -262,4 +262,79 @@ export const LESSONS: Lesson[] = [
       },
     ],
   },
+  {
+    id: 'opening',
+    title: 'La apertura',
+    kanji: '序',
+    summary: 'Los primeros movimientos con plan.',
+    steps: [
+      {
+        instruction:
+          'Además de 7六歩, la otra apertura clásica es avanzar el peón de la torre: 2六歩. Prepara un ataque directo por la columna 2.',
+        sfen: 'lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1',
+        goal: { type: 'move', from: '2g', to: ['2f'] },
+        hint: 'El peón está en 2七, delante de tu torre.',
+        success: 'Así empiezan las aperturas de "torre estática" (居飛車).',
+      },
+      {
+        instruction: 'Gote ha abierto su alfil con 3四歩. Sigue empujando: 2五歩 acerca el peón al campo rival.',
+        sfen: 'lnsgkgsnl/1r5b1/pppppp1pp/6p2/9/7P1/PPPPPPP1P/1B5R1/LNSGKGSNL b - 3',
+        goal: { type: 'move', from: '2f', to: ['2e'] },
+        hint: 'Avanza otra vez el mismo peón, de 2六 a 2五.',
+        success: 'La torre respalda al peón: pronto podrá romper en 2四.',
+      },
+    ],
+  },
+  {
+    id: 'castle',
+    title: 'El castillo',
+    kanji: '囲',
+    summary: 'Proteger al rey antes de atacar.',
+    steps: [
+      {
+        instruction:
+          'En shōgi el rey se esconde detrás de sus generales: es el castillo (囲い). Empieza moviendo el rey de 5九 a 6八.',
+        sfen: 'lnsgkgsnl/1r5b1/pppppp1pp/6p2/9/2P6/PP1PPPPPP/1B5R1/LNSGKGSNL b - 3',
+        goal: { type: 'move', from: '5i', to: ['6h'] },
+        hint: 'El rey avanza en diagonal hacia la izquierda.',
+        success: 'Primer paso: el rey se aleja del centro, donde chocarán las piezas.',
+      },
+      {
+        instruction: 'Sigue: lleva el rey a 7八, junto a sus defensores.',
+        sfen: 'lnsgkgsnl/1r5b1/p1pppp1pp/1p4p2/9/2P6/PP1PPPPPP/1B1K3R1/LNSG1GSNL b - 5',
+        goal: { type: 'move', from: '6h', to: ['7h'] },
+        hint: 'Una casilla a la izquierda.',
+        success: 'El rey ya está rodeado por el oro de 6九, la plata de 7九 y los peones.',
+      },
+      {
+        instruction: 'Completa el "castillo barco" (舟囲い): acerca el oro de 4九 a 5八.',
+        sfen: 'lnsgkgsnl/1r5b1/p1pppp1pp/6p2/1p7/2P6/PP1PPPPPP/1BK4R1/LNSG1GSNL b - 7',
+        goal: { type: 'move', from: '4i', to: ['5h'] },
+        hint: 'El oro sube en diagonal hacia el centro.',
+        success: '¡Castillo terminado! Con el rey a salvo ya puedes pensar en atacar.',
+      },
+    ],
+  },
+  {
+    id: 'rook-attack',
+    title: 'Atacar con la torre',
+    kanji: '攻',
+    summary: 'Romper la defensa y ganar material.',
+    steps: [
+      {
+        instruction: 'Tu peón ha llegado a 2五. Ahora 2四歩 ataca el peón rival y lo obliga a capturar.',
+        sfen: 'lnsgkgsnl/1r5b1/p1ppppppp/9/1p5P1/9/PPPPPPP1P/1B5R1/LNSGKGSNL b - 5',
+        goal: { type: 'move', from: '2e', to: ['2d'] },
+        hint: 'Avanza el peón de 2五 una casilla.',
+        success: 'Sacrificas un peón para abrir la columna a tu torre.',
+      },
+      {
+        instruction: 'Gote ha capturado con 同歩. Recaptura con la torre en 2四: recuperas el peón y tu torre entra en juego.',
+        sfen: 'lnsgkgsnl/1r5b1/p1ppppp1p/7p1/1p7/9/PPPPPPP1P/1B5R1/LNSGKGSNL b p 7',
+        goal: { type: 'move', from: '2h', to: ['2d'] },
+        hint: 'La torre de 2八 sube por la columna, que ahora está libre.',
+        success: 'Intercambio de peones completado: los dos tenéis un peón en la mano, pero tu torre está activa.',
+      },
+    ],
+  },
 ]
