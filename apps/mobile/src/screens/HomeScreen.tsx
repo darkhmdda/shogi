@@ -6,6 +6,11 @@ import { colors, spacing } from '../theme'
 
 const KINDS: PieceKind[] = ['king', 'rook', 'bishop', 'gold', 'silver', 'knight', 'lance', 'pawn']
 
+/** Solo la primera letra en mayúscula (textTransform pondría todas las palabras). */
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
 export function HomeScreen({ onNavigate }: { onNavigate: (tab: 'lessons' | 'puzzles' | 'play') => void }) {
   const progress = useProgress()
   const lessons = Object.keys(progress.lessons).length
@@ -51,7 +56,7 @@ export function HomeScreen({ onNavigate }: { onNavigate: (tab: 'lessons' | 'puzz
           </View>
           <View style={styles.pieceText}>
             <Text style={styles.pieceName}>
-              {pieceName({ kind })} <Text style={styles.muted}>· {JAPANESE_NAMES[kind]}</Text>
+              {capitalize(pieceName({ kind }))} <Text style={styles.muted}>· {JAPANESE_NAMES[kind]}</Text>
             </Text>
             <Text style={styles.body}>{pieceMovement({ kind })}</Text>
           </View>
@@ -87,5 +92,5 @@ const styles = StyleSheet.create({
   },
   pieceKanji: { fontSize: 24, color: colors.pieceText },
   pieceText: { flex: 1, gap: 2 },
-  pieceName: { fontWeight: '700', color: colors.text, textTransform: 'capitalize' },
+  pieceName: { fontWeight: '700', color: colors.text },
 })
