@@ -1,0 +1,21 @@
+{
+  "name": "@shogi/engine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Motor de reglas de shōgi: movimientos, jaque mate, sennichite, impasse, SFEN/KIF, tsume e IA.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "~6.0.3",
+    "vitest": "^5.1.1"
+  }
+}

@@ -1,5 +1,5 @@
-import { search, type Difficulty, type SearchInfo } from './ai'
-import type { Position } from './types'
+import { search, type Difficulty, type SearchInfo } from '@shogi/engine'
+import type { Position } from '@shogi/engine'
 
 export type AiRequest = { id: number; position: Position; difficulty: Difficulty }
 export type AiResponse = { id: number; info: SearchInfo }

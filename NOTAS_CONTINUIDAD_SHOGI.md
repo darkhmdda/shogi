@@ -1,13 +1,15 @@
 # Proyecto Shogi — Nota de continuidad
 
 ## Estado actual
-- Proyecto React + TypeScript + Vite en `apps/web`.
-- Motor de reglas propio en `apps/web/src/engine/`, sin dependencias externas
-  y con tests en Vitest (`npm test`). Incluye perft hasta profundidad 3
-  (30 / 900 / 25 470), que coincide con los valores de referencia.
-- La interfaz (`components/ShogiBoard.tsx`) solo usa el motor; no contiene reglas.
-- IA propia (negamax + alfa-beta) en un Web Worker, con niveles fácil, normal y difícil.
-- CI en `.github/workflows/web.yml`: lint, tests y build.
+- Monorepo con npm workspaces: `packages/engine` (motor) y `apps/web` (web).
+- Motor propio con 68 tests (perft, reglas, lecciones, tsume, SFEN/KIF, IA).
+- IA: búsqueda iterativa con tiempo límite, alfa-beta, quiescencia, tabla de
+  transposición, libro de aperturas. Corre en un Web Worker.
+- Web completa: partidas, lecciones, tsume, guía de piezas, impasse, SFEN/KIF,
+  guardado automático, progreso y cuenta opcional (VITE_API_URL).
+- Backend FastAPI en `backend/` (10 tests, probados también contra PostgreSQL).
+- Esquema PostgreSQL en `database/schema.sql`; `docker compose up` levanta todo.
+- CI en `.github/workflows/ci.yml`: motor, web y backend con PostgreSQL.
 
 ## Decisión sobre bibliotecas externas
 Se descartaron @huguzturk/shogijs y shogiops:
@@ -23,19 +25,16 @@ uchifuzume, jaque, jaque mate, derrota sin jugadas legales, sennichite
 (tablas) y jaque perpetuo (pierde quien da jaque).
 
 ## Pendiente (siguientes pasos sugeridos)
-1. Jishōgi / impasse (declaración por puntos, regla de 24/27 puntos).
-2. Importar/exportar SFEN y KIF para guardar y compartir partidas.
-3. Guardar la partida en curso (localStorage) y el progreso del usuario.
-4. Lecciones guiadas paso a paso usando `engine/positions.ts` y `engine/explain.ts`.
-5. Más tsume (mate en 1, 3 y 5) y un modo de problemas con puntuación.
-6. Mejorar la IA: quiescencia, tabla de transposición y evaluación de seguridad del rey.
-7. Mover `engine/` a `packages/engine` cuando empiece la app móvil (React Native).
-8. Tests de interfaz (Playwright) para los flujos principales.
+1. App móvil (Expo) reutilizando `@shogi/engine`.
+2. Migraciones con Alembic cuando cambie el esquema.
+3. Más contenido: tsume de 5 jugadas, lecciones de aperturas y castillos.
+4. Partidas en línea entre usuarios (WebSockets).
+5. Tests de interfaz con Playwright en CI.
+6. Despliegue (web estática + API + PostgreSQL gestionado).
 
 ## Comandos
 ```bash
-cd apps/web
-npm install
-npm test
-npm run build
+npm install && npm test && npm run build      # motor y web
+cd backend && pip install -e ".[dev]" && python -m pytest
+docker compose up                             # PostgreSQL + API
 ```

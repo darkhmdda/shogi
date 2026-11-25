@@ -1,7 +1,7 @@
 import './ShogiBoard.css'
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
-import type { Difficulty } from '../engine/ai'
-import { describeMove } from '../engine/explain'
+import type { Difficulty } from '@shogi/engine'
+import { describeMove } from '@shogi/engine'
 import {
   declareImpasse,
   isCheck,
@@ -10,16 +10,17 @@ import {
   resign,
   undo,
   type GameState,
-} from '../engine/game'
-import { formatMove } from '../engine/notation'
-import { JAPANESE_NAMES, OWNER_LABEL, OWNER_SHORT, PIECE_TIPS, pieceKanji, pieceName } from '../engine/pieces'
-import { PRACTICE_POSITIONS, type PracticePosition } from '../engine/positions'
-import { deserializeGame, fromSfen, serializeGame, toKif, toSfen, type SavedGame } from '../engine/record'
-import { impasseStatus, otherOwner } from '../engine/rules'
-import type { GameResult, Move, Owner } from '../engine/types'
+} from '@shogi/engine'
+import { formatMove } from '@shogi/engine'
+import { JAPANESE_NAMES, OWNER_LABEL, OWNER_SHORT, PIECE_TIPS, pieceKanji, pieceName } from '@shogi/engine'
+import { PRACTICE_POSITIONS, type PracticePosition } from '@shogi/engine'
+import { deserializeGame, fromSfen, serializeGame, toKif, toSfen, type SavedGame } from '@shogi/engine'
+import { impasseStatus, otherOwner } from '@shogi/engine'
+import type { GameResult, Move, Owner } from '@shogi/engine'
 import { useAiPlayer } from '../hooks/useAiPlayer'
 import { useMoveInput } from '../hooks/useMoveInput'
 import { recordGame, useProgress } from '../progress'
+import { uploadGame } from '../api'
 import BoardView, { PromotionChoice } from './BoardView'
 
 type Mode = 'ai' | 'local'
@@ -139,6 +140,20 @@ export default function ShogiBoard() {
     if (!next.result || !aiActive) return
     if (next.result.winner === null) recordGame('drawn')
     else recordGame(next.result.winner === humanSide ? 'won' : 'lost')
+
+    // Si hay una cuenta iniciada, la partida se guarda en el servidor.
+    const saved = serializeGame(next)
+    uploadGame({
+      sfen: saved.sfen,
+      moves: saved.moves,
+      winner: next.result.winner,
+      reason: next.result.reason,
+      mode: 'ai',
+      difficulty,
+      human_side: humanSide,
+    }).catch(() => {
+      // Sin conexión: la partida sigue disponible en este dispositivo.
+    })
   }
 
   function commit(current: GameState, move: Move, byMachine: boolean) {

@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
-import { explainIllegalBoardMove, explainIllegalDrop } from '../engine/explain'
-import { OWNER_LABEL, PIECE_KANJI, PIECE_NAMES, pieceKanji, pieceMovement, pieceName } from '../engine/pieces'
-import { legalDrops, legalMovesFrom, sameSquare } from '../engine/rules'
-import type { HandKind, Move, Piece, Position, Square } from '../engine/types'
+import { explainIllegalBoardMove, explainIllegalDrop } from '@shogi/engine'
+import { OWNER_LABEL, PIECE_KANJI, PIECE_NAMES, pieceKanji, pieceMovement, pieceName } from '@shogi/engine'
+import { legalDrops, legalMovesFrom, sameSquare } from '@shogi/engine'
+import type { HandKind, Move, Piece, Position, Square } from '@shogi/engine'
 
 export type Selection =
   | { type: 'square'; square: Square }

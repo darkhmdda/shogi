@@ -218,3 +218,36 @@
     flex: 0 0 160px;
   }
 }
+
+.account-form {
+  display: grid;
+  gap: 12px;
+  max-width: 520px;
+}
+
+.account-form h3 {
+  margin: 0;
+}
+
+.account-form label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.account-form input {
+  padding: 8px 10px;
+  border: 1px solid #cdbb9a;
+  border-radius: 6px;
+  background: #fffdf8;
+  font: inherit;
+}
+
+.account-games {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 1.1em;
+  font-size: 0.9rem;
+}

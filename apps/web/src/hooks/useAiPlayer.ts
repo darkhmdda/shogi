@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { search, type Difficulty, type SearchInfo } from '../engine/ai'
-import type { AiRequest, AiResponse } from '../engine/ai.worker'
-import type { Position } from '../engine/types'
+import { search, type Difficulty, type SearchInfo } from '@shogi/engine'
+import type { AiRequest, AiResponse } from '../ai.worker'
+import type { Position } from '@shogi/engine'
 
 /**
  * Calcula jugadas de la máquina en un Web Worker para no bloquear la interfaz.
@@ -15,7 +15,7 @@ export function useAiPlayer() {
   useEffect(() => {
     if (typeof Worker === 'undefined') return
 
-    const worker = new Worker(new URL('../engine/ai.worker.ts', import.meta.url), {
+    const worker = new Worker(new URL('../ai.worker.ts', import.meta.url), {
       type: 'module',
     })
 

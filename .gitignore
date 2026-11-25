@@ -29,3 +29,7 @@ coverage/
 # Sistema operativo
 .DS_Store
 Thumbs.db
+
+# Backend
+*.egg-info/
+backend/*.db

@@ -1,5 +1,5 @@
 import './ShogiBoard.css'
-import { FILE_LABELS, RANK_LABELS, squareLabel } from '../engine/notation'
+import { FILE_LABELS, RANK_LABELS, squareLabel } from '@shogi/engine'
 import {
   OWNER_SHORT,
   PIECE_KANJI,
@@ -7,9 +7,9 @@ import {
   pieceKanji,
   pieceMovement,
   pieceName,
-} from '../engine/pieces'
-import { findKing, HAND_ORDER, isInCheck, sameSquare } from '../engine/rules'
-import type { HandKind, Move, Owner, Piece, Position, Square } from '../engine/types'
+} from '@shogi/engine'
+import { findKing, HAND_ORDER, isInCheck, sameSquare } from '@shogi/engine'
+import type { HandKind, Move, Owner, Piece, Position, Square } from '@shogi/engine'
 import type { PendingPromotion, Selection } from '../hooks/useMoveInput'
 
 const INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8]

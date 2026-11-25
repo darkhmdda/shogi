@@ -8,64 +8,73 @@ Crear una aplicación que permita a principiantes aprender las reglas del shōgi
 
 ## Funcionalidades
 
-Ya disponibles en la aplicación web:
+**Aplicación web** (`apps/web`)
 
-- Tablero de 9 × 9 con coordenadas, piezas en mano y orientación según el bando.
-- Motor de reglas completo y probado: movimientos, capturas, colocaciones,
-  promoción opcional y obligatoria, nifu, uchifuzume, jaque, jaque mate,
-  sennichite y jaque perpetuo.
-- Ayudas educativas: jugadas posibles resaltadas y explicación de por qué un
-  movimiento no es legal.
-- Guía de piezas con diagramas de movimiento.
-- Posiciones de práctica y problemas de mate en una (tsume).
-- Partidas contra la máquina (tres niveles) o entre dos personas.
-- Deshacer, rendirse y registro de la partida en notación japonesa (kifu).
+- Partidas contra la máquina (tres niveles) o entre dos personas, con todas
+  las reglas: promoción, colocaciones, nifu, uchifuzume, jaque mate,
+  sennichite, jaque perpetuo e impasse (jishōgi, regla de 27 puntos).
+- Nueve lecciones guiadas con objetivos que comprueba el motor.
+- Quince problemas de mate (tsume) en 1 y en 3 jugadas, verificados por un
+  solucionador propio.
+- Guía de piezas, explicaciones de jugadas ilegales, pistas de la máquina.
+- Registro kifu, exportación KIF, importación/exportación SFEN y guardado
+  automático de la partida.
+- Progreso local y, con cuenta, sincronizado con el servidor.
 
-Previstas:
+**Backend** (`backend`): API FastAPI con cuentas, sincronización del progreso
+(fusión sin pérdida de datos entre dispositivos) y partidas guardadas.
 
-- Lecciones guiadas paso a paso y más ejercicios.
-- Seguimiento del progreso del usuario.
-- Aplicación móvil, backend y base de datos.
+**Base de datos** (`database`): esquema PostgreSQL.
 
-## Tecnologías previstas
+**Motor** (`packages/engine`): reglas, IA, solucionador de tsume, SFEN/KIF y
+contenido educativo en TypeScript puro, compartido por la web y la futura app móvil.
 
-- **Aplicación web:** React y TypeScript.
-- **Aplicación móvil:** React Native y Expo.
-- **Backend:** Python y FastAPI.
+## Tecnologías
+
+- **Web:** React 19, TypeScript y Vite.
+- **Motor:** TypeScript puro, con tests en Vitest.
+- **Móvil:** React Native y Expo (prevista).
+- **Backend:** Python, FastAPI y SQLAlchemy.
 - **Base de datos:** PostgreSQL.
-- **Control de versiones:** Git y GitHub.
+- **CI:** GitHub Actions.
 
 ## Estructura del proyecto
 
-Actual:
-
-- `apps/web/`: aplicación web, que incluye el motor de reglas en
-  `apps/web/src/engine/`. Más detalles en [apps/web/README.md](apps/web/README.md).
-
-Prevista:
-
-- `apps/mobile/`: aplicación móvil.
-- `backend/`: API y servicios del servidor.
-- `packages/`: código compartido (el motor se moverá aquí cuando exista la app móvil).
-- `database/`: scripts y estructura de la base de datos.
-- `docs/`: documentación técnica.
+| Carpeta | Estado | Contenido |
+|---|---|---|
+| `apps/web/` | ✅ | Aplicación web (React + TypeScript + Vite) |
+| `packages/engine/` | ✅ | Motor de reglas e IA compartido |
+| `backend/` | ✅ | API (FastAPI + SQLAlchemy) |
+| `database/` | ✅ | Esquema PostgreSQL |
+| `apps/mobile/` | ⏳ | Aplicación móvil (React Native + Expo) |
+| `docs/` | ⏳ | Documentación técnica |
 
 ## Desarrollo
 
 ```bash
-cd apps/web
-npm install
-npm run dev
+npm install          # instala la web y el motor (npm workspaces)
+npm run dev          # web en http://localhost:5173
+npm test             # tests del motor
+npm run lint && npm run build
 ```
 
-Antes de subir cambios: `npm run lint && npm test && npm run build`.
-GitHub Actions ejecuta estas mismas comprobaciones en cada push.
+Backend y base de datos:
+
+```bash
+docker compose up    # PostgreSQL + API en http://localhost:8000
+```
+
+Para conectar la web con la API, crea `apps/web/.env` con
+`VITE_API_URL=http://localhost:8000` (ver `apps/web/.env.example`). Sin esa
+variable la web funciona igual, sin cuentas.
+
+GitHub Actions comprueba el motor, la web y el backend (contra PostgreSQL)
+en cada push.
 
 ## Estado del proyecto
 
-En desarrollo. La aplicación web ya permite aprender las piezas, practicar
-posiciones y jugar partidas completas con todas las reglas oficiales
-(salvo la declaración de impasse, jishōgi).
+En desarrollo. La aplicación web está completa; el backend y la base de
+datos están operativos. Falta la aplicación móvil.
 
 ## Licencia
 

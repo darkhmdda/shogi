@@ -1,14 +1,14 @@
 import './PieceGuide.css'
 import { useState } from 'react'
-import { movePatternFor } from '../engine/rules'
+import { movePatternFor } from '@shogi/engine'
 import {
   JAPANESE_NAMES,
   PIECE_TIPS,
   pieceKanji,
   pieceMovement,
   pieceName,
-} from '../engine/pieces'
-import type { PieceKind } from '../engine/types'
+} from '@shogi/engine'
+import type { PieceKind } from '@shogi/engine'
 
 const KINDS: PieceKind[] = ['king', 'rook', 'bishop', 'gold', 'silver', 'knight', 'lance', 'pawn']
 const PROMOTABLE: PieceKind[] = ['rook', 'bishop', 'silver', 'knight', 'lance', 'pawn']

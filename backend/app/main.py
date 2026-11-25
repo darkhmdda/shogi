@@ -1,0 +1,40 @@
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from .config import settings
+from .db import Base, engine
+from .routers import auth, games, progress
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # Crea las tablas si no existen. En producción, database/schema.sql
+    # documenta el esquema equivalente para PostgreSQL.
+    Base.metadata.create_all(engine)
+    yield
+
+
+app = FastAPI(
+    title="Shōgi API",
+    version="0.1.0",
+    description="Cuentas de usuario, sincronización del progreso y partidas guardadas.",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth.router)
+app.include_router(progress.router)
+app.include_router(games.router)
+
+
+@app.get("/health", tags=["sistema"])
+def health() -> dict[str, str]:
+    return {"status": "ok"}

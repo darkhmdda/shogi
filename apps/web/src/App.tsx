@@ -1,19 +1,22 @@
 
 import './App.css'
 import { useEffect, useState } from 'react'
+import AccountPanel from './components/AccountPanel'
 import Lessons from './components/Lessons'
 import PieceGuide from './components/PieceGuide'
 import Puzzles from './components/Puzzles'
 import ShogiBoard from './components/ShogiBoard'
-import { LESSONS } from './engine/lessons'
-import { TSUME } from './engine/tsume'
+import { LESSONS } from '@shogi/engine'
+import { TSUME } from '@shogi/engine'
 import { useProgress } from './progress'
+import { API_URL } from './api'
 
 const sections = [
   { icon: '⌂', label: 'Inicio', href: '#inicio' },
   { icon: '書', label: 'Aprender', href: '#aprender' },
   { icon: '棋', label: 'Practicar', href: '#problemas' },
   { icon: '対', label: 'Jugar', href: '#tablero' },
+  ...(API_URL ? [{ icon: '人', label: 'Cuenta', href: '#cuenta' }] : []),
 ]
 
 function useHash(): string {
@@ -268,6 +271,18 @@ function App() {
 
           <ShogiBoard />
         </section>
+
+        {API_URL && (
+          <section className="board-section" id="cuenta">
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow">TU CUENTA</span>
+                <h2>Guarda tu progreso</h2>
+              </div>
+            </div>
+            <AccountPanel />
+          </section>
+        )}
 
         <footer className="page-footer">
           <span>SHŌGI · APRENDE, PIENSA, JUEGA</span>
