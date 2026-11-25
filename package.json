@@ -15,7 +15,9 @@
     "lint": "npm run lint --workspace web",
     "test": "npm test --workspace @shogi/engine --workspace @shogi/api",
     "typecheck": "npm run typecheck --workspace @shogi/engine --workspace @shogi/react --workspace @shogi/api --workspace mobile",
-    "mobile": "npm start --workspace mobile"
+    "mobile": "npm start --workspace mobile",
+    "build:function": "node scripts/build-edge-function.mjs",
+    "test:functions": "vitest run supabase/functions"
   },
   "overrides": {
     "react": "19.3.0",

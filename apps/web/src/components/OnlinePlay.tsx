@@ -2,7 +2,7 @@ import './Training.css'
 import { describeMove, emptyBoard, emptyHands, formatMove, isCheck, OWNER_LABEL, type Owner, type Position } from '@shogi/engine'
 import { useMoveInput, useOnlineGame } from '@shogi/react'
 import { useEffect, useState, type FormEvent } from 'react'
-import { getClient, useAccount, type OnlineState } from '../api'
+import { getOnlineProvider, useAccount, type OnlineState } from '../api'
 import BoardView, { PromotionChoice } from './BoardView'
 
 const emptyPosition: Position = { board: emptyBoard(), hands: emptyHands(), turn: 'sente' }
@@ -31,20 +31,20 @@ export default function OnlinePlay() {
   const [lobbyError, setLobbyError] = useState<string | null>(null)
   const [myGames, setMyGames] = useState<OnlineState[]>([])
   const [message, setMessage] = useState<string | null>(null)
-  const online = useOnlineGame(getClient(), code)
+  const provider = account ? getOnlineProvider() : null
+  const online = useOnlineGame(provider, code)
 
   useEffect(() => {
-    const client = getClient()
-    if (!account || !client || code) return
+    if (!account || !provider || code) return
     let active = true
-    client.online
+    provider
       .list()
       .then((games) => active && setMyGames(games.filter((g) => g.status !== 'finished')))
       .catch(() => {})
     return () => {
       active = false
     }
-  }, [account, code])
+  }, [account, provider, code])
 
   const game = online.game
   const state = online.state
@@ -72,7 +72,7 @@ export default function OnlinePlay() {
   async function create(side: 'sente' | 'gote' | 'random') {
     setLobbyError(null)
     try {
-      const created = await getClient()!.online.create(side)
+      const created = await provider!.create(side)
       setCode(created.code)
       setMessage(null)
     } catch (error) {
@@ -84,7 +84,7 @@ export default function OnlinePlay() {
     event.preventDefault()
     setLobbyError(null)
     try {
-      const joined = await getClient()!.online.join(joinCode.trim().toUpperCase())
+      const joined = await provider!.join(joinCode.trim().toUpperCase())
       setCode(joined.code)
       setMessage(null)
     } catch (error) {

@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient, type SupportedStorage } from '@supabase/supabase-js'
-import { ApiError, type GameUpload, type Progress, type SavedGame } from './index'
+import { ApiError, type GameUpload, type OnlineProvider, type OnlineState, type Progress, type SavedGame } from './index'
 
 /** Cuenta con Supabase: se entra con correo; el nombre de usuario es el público. */
 export type SupabaseAccount = { username: string; email: string }
@@ -37,7 +37,35 @@ export type SupabaseBackendOptions = {
   redirectTo?: string
 }
 
+type OnlineRow = {
+  code: string
+  sente_id: string | null
+  gote_id: string | null
+  sente_name: string | null
+  gote_name: string | null
+  start_sfen: string
+  moves: string[]
+  status: OnlineState['status']
+  winner: OnlineState['winner']
+  reason: OnlineState['reason']
+}
+
 const USERNAME = /^[a-z0-9_.-]{3,32}$/
+
+/** Mensaje de error que devuelve la Edge Function, si lo hay. */
+async function functionErrorMessage(error: unknown): Promise<string> {
+  const context = (error as { context?: unknown }).context
+  if (context instanceof Response) {
+    try {
+      const body = (await context.clone().json()) as { error?: string }
+      if (body.error) return body.error
+    } catch {
+      // Sin cuerpo JSON.
+    }
+    if (context.status === 404) return 'El servidor de partidas en línea no está instalado (función "online-move").'
+  }
+  return translateAuthError((error as Error).message ?? 'No se pudo enviar la jugada.')
+}
 
 /** Traduce los errores más habituales de Supabase al español. */
 export function translateAuthError(message: string): string {
@@ -141,6 +169,80 @@ export function createSupabaseBackend({ url, key, storage, redirectTo }: Supabas
     async signOut() {
       await supabase.auth.signOut()
     },
+
+    /** Juego en línea: tabla online_games + Realtime + Edge Function "online-move". */
+    online: ((): OnlineProvider => {
+      async function toState(row: OnlineRow): Promise<OnlineState> {
+        const { data } = await supabase.auth.getSession()
+        const uid = data.session?.user.id
+        return {
+          code: row.code,
+          sfen: row.start_sfen,
+          moves: row.moves ?? [],
+          status: row.status,
+          sente: row.sente_name,
+          gote: row.gote_name,
+          winner: row.winner,
+          reason: row.reason,
+          your_side: uid && uid === row.sente_id ? 'sente' : uid && uid === row.gote_id ? 'gote' : null,
+        }
+      }
+
+      async function rpc(name: string, args: Record<string, unknown>): Promise<OnlineState> {
+        const { data, error } = await supabase.rpc(name, args)
+        if (error) fail(error)
+        return toState(data as OnlineRow)
+      }
+
+      return {
+        create: (side = 'random') => rpc('create_online_game', { side }),
+        join: (code) => rpc('join_online_game', { game_code: code }),
+        resign: (code) => rpc('resign_online_game', { game_code: code }),
+
+        async list() {
+          const { data, error } = await supabase
+            .from('online_games')
+            .select('*')
+            .order('updated_at', { ascending: false })
+            .limit(20)
+          if (error) fail(error)
+          return Promise.all((data as OnlineRow[]).map(toState))
+        },
+
+        async get(code) {
+          const { data, error } = await supabase
+            .from('online_games')
+            .select('*')
+            .eq('code', code.trim().toUpperCase())
+            .maybeSingle()
+          if (error) fail(error)
+          if (!data) throw new ApiError(404, 'Partida no encontrada.')
+          return toState(data as OnlineRow)
+        },
+
+        async move(code, move, ply) {
+          const { data, error } = await supabase.functions.invoke('online-move', { body: { code, move, ply } })
+          if (error) throw new ApiError(409, await functionErrorMessage(error))
+          return toState(data as OnlineRow)
+        },
+
+        subscribe(code, onChange, onConnection) {
+          const channel = supabase
+            .channel(`online-${code}-${Math.random().toString(36).slice(2)}`)
+            .on(
+              'postgres_changes',
+              { event: '*', schema: 'public', table: 'online_games', filter: `code=eq.${code.trim().toUpperCase()}` },
+              (payload) => {
+                if (payload.new && 'code' in payload.new) toState(payload.new as OnlineRow).then(onChange)
+              },
+            )
+            .subscribe((status) => onConnection(status === 'SUBSCRIBED'))
+          return () => {
+            supabase.removeChannel(channel)
+          }
+        },
+      }
+    })(),
 
     async mergeProgress(progress: Progress): Promise<Progress> {
       const { data, error } = await supabase.rpc('merge_progress', { incoming: progress })

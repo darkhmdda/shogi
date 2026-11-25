@@ -12,8 +12,26 @@ GitHub Pages: cuentas (con correo), progreso sincronizado y partidas guardadas.
    - *Site URL*: `https://darkhmdda.github.io/shogi/`
    - *Redirect URLs*: `https://darkhmdda.github.io/shogi/**` y, para
      desarrollo, `http://localhost:5173/**`
-3. **Web:** variables `VITE_SUPABASE_URL` y `VITE_SUPABASE_KEY` (clave
+3. **Partidas en línea:**
+   - Ejecuta también `migrations/20261125000002_partidas_en_linea.sql` en el
+     SQL Editor.
+   - Crea la Edge Function: *Edge Functions → Deploy a new function → Via
+     Editor*, nombre **`online-move`**, sustituye todo el código por el
+     contenido de [`functions/online-move/index.ts`](functions/online-move/index.ts)
+     y pulsa *Deploy function*. (Con la CLI: `supabase functions deploy online-move`.)
+4. **Web:** variables `VITE_SUPABASE_URL` y `VITE_SUPABASE_KEY` (clave
    *publishable*). El workflow de GitHub Pages ya las incluye.
+
+## La Edge Function `online-move`
+
+Valida cada jugada en línea con el mismo motor de reglas que la app (incluye
+uchifuzume, sennichite, jaque perpetuo…) antes de guardarla; los jugadores
+reciben los cambios al instante por Realtime. Nadie puede escribir jugadas
+directamente en la tabla.
+
+- Código fuente: `functions/online-move/main.ts` y `handler.ts` (con tests).
+- `functions/online-move/index.ts` es un **archivo generado** (incluye el
+  motor): `npm run build:function`. La CI comprueba que esté al día.
 
 ## Seguridad
 

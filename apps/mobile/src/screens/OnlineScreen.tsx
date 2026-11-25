@@ -33,7 +33,7 @@ export function OnlineScreen({ onNeedAccount }: { onNeedAccount: () => void }) {
   const [lobbyError, setLobbyError] = useState<string | null>(null)
   const [myGames, setMyGames] = useState<OnlineState[]>([])
   const [message, setMessage] = useState<string | null>(null)
-  const online = useOnlineGame(client, code)
+  const online = useOnlineGame(client?.online ?? null, code)
 
   useEffect(() => {
     if (!account || !client || code) return

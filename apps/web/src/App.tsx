@@ -283,8 +283,9 @@ function App() {
               </div>
             </div>
             <p className="board-intro">
-              Crea una partida y comparte el código con tu rival. El servidor
-              comprueba cada jugada con las reglas oficiales.
+              Crea una partida y comparte el código con tu rival. Las jugadas
+              llegan al instante y el servidor comprueba cada una con las reglas
+              oficiales.
             </p>
             <OnlinePlay />
           </section>

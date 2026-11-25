@@ -41,6 +41,21 @@ export type OnlineState = {
   your_side: 'sente' | 'gote' | null
 }
 
+/**
+ * Juego en línea, igual con cualquier servidor (API FastAPI o Supabase).
+ * subscribe avisa de cada cambio de la partida y del estado de la conexión
+ * en tiempo real; devuelve una función para dejar de escuchar.
+ */
+export type OnlineProvider = {
+  create(side?: 'sente' | 'gote' | 'random'): Promise<OnlineState>
+  list(): Promise<OnlineState[]>
+  get(code: string): Promise<OnlineState>
+  join(code: string): Promise<OnlineState>
+  move(code: string, move: string, ply: number): Promise<OnlineState>
+  resign(code: string): Promise<OnlineState>
+  subscribe(code: string, onChange: (state: OnlineState) => void, onConnection: (live: boolean) => void): () => void
+}
+
 export class ApiError extends Error {
   status: number
 
@@ -130,7 +145,29 @@ export function createApiClient({ baseUrl, getToken, onUnauthorized, fetch: fetc
         const token = getToken() ?? ''
         return `${root.replace(/^http/, 'ws')}/online/${encodeURIComponent(code)}/ws?token=${encodeURIComponent(token)}`
       },
-    },
+      /** Cambios en tiempo real por WebSocket. */
+      subscribe(code: string, onChange: (state: OnlineState) => void, onConnection: (live: boolean) => void) {
+        let socket: WebSocket | null = null
+        try {
+          socket = new WebSocket(this.socketUrl(code))
+        } catch {
+          onConnection(false)
+          return () => {}
+        }
+        socket.onopen = () => onConnection(true)
+        socket.onclose = () => onConnection(false)
+        socket.onmessage = (event) => onChange(JSON.parse(String(event.data)) as OnlineState)
+        // Mantiene viva la conexión a través de proxies.
+        const ping = setInterval(() => socket?.readyState === WebSocket.OPEN && socket.send('ping'), 30_000)
+        return () => {
+          clearInterval(ping)
+          if (socket) {
+            socket.onclose = null
+            socket.close()
+          }
+        }
+      },
+    } satisfies OnlineProvider & { socketUrl(code: string): string },
   }
 }
 

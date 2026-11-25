@@ -4,7 +4,14 @@
  * - API propia FastAPI (VITE_API_URL): cuentas con usuario, progreso, partidas y juego en línea.
  * Sin ninguno, la app funciona igual pero sin cuentas.
  */
-import { createApiClient, pickProgress, progressFingerprint, type GameUpload, type SavedGame } from '@shogi/api'
+import {
+  createApiClient,
+  pickProgress,
+  progressFingerprint,
+  type GameUpload,
+  type OnlineProvider,
+  type SavedGame,
+} from '@shogi/api'
 import type { SupabaseBackend } from '@shogi/api/supabase'
 import { useSyncExternalStore } from 'react'
 import { getProgress, replaceProgress, subscribe as subscribeProgress } from './progress'
@@ -31,8 +38,8 @@ export const BACKEND: Backend = SUPABASE_URL && SUPABASE_KEY ? 'supabase' : API_
 export const ACCOUNTS_AVAILABLE = BACKEND !== null
 /** ¿Se entra con correo (Supabase) en lugar de con nombre de usuario? */
 export const LOGIN_WITH_EMAIL = BACKEND === 'supabase'
-/** ¿Hay juego en línea? (de momento, solo con la API FastAPI). */
-export const ONLINE_AVAILABLE = BACKEND === 'fastapi'
+/** ¿Hay juego en línea? (con Supabase necesita la Edge Function "online-move"). */
+export const ONLINE_AVAILABLE = BACKEND !== null
 
 export type Account = { username: string; email?: string; token?: string }
 
@@ -99,9 +106,12 @@ supabaseReady.then((backend) => {
   })
 })
 
-/** Cliente de la API FastAPI (para el juego en línea); null con Supabase o sin servidor. */
-export function getClient() {
-  return client
+/**
+ * Juego en línea del servidor configurado. Con Supabase está disponible en
+ * cuanto hay sesión iniciada (la librería ya se ha cargado).
+ */
+export function getOnlineProvider(): OnlineProvider | null {
+  return supabase?.online ?? client?.online ?? null
 }
 
 export function useAccount(): Account | null {

@@ -17,6 +17,11 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:functions
+      - name: La Edge Function empaquetada está al día
+        run: |
+          npm run build:function
+          git diff --exit-code supabase/functions/online-move/index.ts
       - run: npm run lint
       - run: npm run build
 
