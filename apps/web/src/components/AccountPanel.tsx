@@ -1,6 +1,7 @@
 import './Training.css'
 import { useEffect, useState, type FormEvent } from 'react'
 import {
+  LOGIN_WITH_EMAIL,
   authenticate,
   changePassword,
   deleteAccount,
@@ -29,6 +30,7 @@ export default function AccountPanel() {
   const progress = useProgress()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -53,9 +55,15 @@ export default function AccountPanel() {
     setBusy(true)
     setStatus(null)
     try {
-      await authenticate(mode, username, password)
+      const { needsConfirmation } = await authenticate(mode, { username, email, password })
       setPassword('')
-      setStatus(mode === 'register' ? 'Cuenta creada. Tu progreso ya está a salvo.' : 'Sesión iniciada y progreso sincronizado.')
+      setStatus(
+        needsConfirmation
+          ? `Cuenta creada. Te hemos enviado un correo a ${email}: pulsa el enlace para confirmarla y volverás aquí con la sesión iniciada.`
+          : mode === 'register'
+            ? 'Cuenta creada. Tu progreso ya está a salvo.'
+            : 'Sesión iniciada y progreso sincronizado.',
+      )
     } catch (error) {
       setStatus((error as Error).message)
     } finally {
@@ -89,17 +97,33 @@ export default function AccountPanel() {
         <p className="muted">
           Opcional: con una cuenta tu progreso se guarda en el servidor y puedes continuar en otro dispositivo.
         </p>
-        <label>
-          Usuario
-          <input
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            autoComplete="username"
-            minLength={3}
-            maxLength={32}
-            required
-          />
-        </label>
+        {(!LOGIN_WITH_EMAIL || mode === 'register') && (
+          <label>
+            {LOGIN_WITH_EMAIL ? 'Nombre de usuario (público)' : 'Usuario'}
+            <input
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              autoComplete={LOGIN_WITH_EMAIL ? 'nickname' : 'username'}
+              minLength={3}
+              maxLength={32}
+              pattern="[A-Za-z0-9_.\-]{3,32}"
+              title="De 3 a 32 caracteres: letras, números, punto, guion o guion bajo"
+              required
+            />
+          </label>
+        )}
+        {LOGIN_WITH_EMAIL && (
+          <label>
+            Correo electrónico
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              required
+            />
+          </label>
+        )}
         <label>
           Contraseña
           <input

@@ -10,19 +10,15 @@ import ShogiBoard from './components/ShogiBoard'
 import { LESSONS } from '@shogi/engine'
 import { TSUME } from '@shogi/engine'
 import { useProgress } from './progress'
-import { API_URL } from './api'
+import { ACCOUNTS_AVAILABLE, ONLINE_AVAILABLE } from './api'
 
 const sections = [
   { icon: '⌂', label: 'Inicio', href: '#inicio' },
   { icon: '書', label: 'Aprender', href: '#aprender' },
   { icon: '棋', label: 'Practicar', href: '#problemas' },
   { icon: '対', label: 'Jugar', href: '#tablero' },
-  ...(API_URL
-    ? [
-        { icon: '網', label: 'En línea', href: '#en-linea' },
-        { icon: '人', label: 'Cuenta', href: '#cuenta' },
-      ]
-    : []),
+  ...(ONLINE_AVAILABLE ? [{ icon: '網', label: 'En línea', href: '#en-linea' }] : []),
+  ...(ACCOUNTS_AVAILABLE ? [{ icon: '人', label: 'Cuenta', href: '#cuenta' }] : []),
 ]
 
 function useHash(): string {
@@ -278,7 +274,7 @@ function App() {
           <ShogiBoard />
         </section>
 
-        {API_URL && (
+        {ONLINE_AVAILABLE && (
           <section className="board-section" id="en-linea">
             <div className="section-heading">
               <div>
@@ -294,7 +290,7 @@ function App() {
           </section>
         )}
 
-        {API_URL && (
+        {ACCOUNTS_AVAILABLE && (
           <section className="board-section" id="cuenta">
             <div className="section-heading">
               <div>
