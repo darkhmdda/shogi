@@ -97,7 +97,8 @@ Pendiente, a decidir por el responsable del proyecto:
 
 - Activar GitHub Pages (Settings → Pages → Source: GitHub Actions); la web se
   publica sola en cada push a `main`. Ver [docs/despliegue.md](docs/despliegue.md).
-- Probar la app móvil en dispositivos reales y publicarla con EAS.
+- Probar la app móvil en dispositivos reales ([guía con Expo Go](docs/probar-en-el-movil.md))
+  y publicarla en las tiendas con EAS.
 
 ## Licencia
 
