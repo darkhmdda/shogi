@@ -5,7 +5,7 @@ import { formatMove } from '@shogi/engine'
 import { applyMove, generateLegalMoves, isInCheck } from '@shogi/engine'
 import { TSUME, tsumePosition, type Tsume } from '@shogi/engine'
 import type { Move, Position } from '@shogi/engine'
-import { useMoveInput } from '../hooks/useMoveInput'
+import { useMoveInput } from '@shogi/react'
 import { completePuzzle, useProgress } from '../progress'
 import BoardView, { PromotionChoice } from './BoardView'
 

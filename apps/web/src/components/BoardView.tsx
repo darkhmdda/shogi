@@ -10,7 +10,7 @@ import {
 } from '@shogi/engine'
 import { findKing, HAND_ORDER, isInCheck, sameSquare } from '@shogi/engine'
 import type { HandKind, Move, Owner, Piece, Position, Square } from '@shogi/engine'
-import type { PendingPromotion, Selection } from '../hooks/useMoveInput'
+import type { PendingPromotion, Selection } from '@shogi/react'
 
 const INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 

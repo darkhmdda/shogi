@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Shōgi",
+    "slug": "shogi",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#f5f3ee",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.shogi.learn"
+    },
+    "android": {
+      "package": "app.shogi.learn",
+      "adaptiveIcon": {
+        "backgroundColor": "#a84739",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

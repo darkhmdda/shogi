@@ -18,7 +18,7 @@ import { deserializeGame, fromSfen, serializeGame, toKif, toSfen, type SavedGame
 import { impasseStatus, otherOwner } from '@shogi/engine'
 import type { GameResult, Move, Owner } from '@shogi/engine'
 import { useAiPlayer } from '../hooks/useAiPlayer'
-import { useMoveInput } from '../hooks/useMoveInput'
+import { useMoveInput } from '@shogi/react'
 import { recordGame, useProgress } from '../progress'
 import { uploadGame } from '../api'
 import BoardView, { PromotionChoice } from './BoardView'

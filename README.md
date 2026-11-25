@@ -26,14 +26,17 @@ Crear una aplicación que permita a principiantes aprender las reglas del shōgi
 
 **Base de datos** (`database`): esquema PostgreSQL.
 
+**Aplicación móvil** (`apps/mobile`): Expo para iOS y Android con lecciones,
+problemas y partidas contra la máquina; progreso guardado en el dispositivo.
+
 **Motor** (`packages/engine`): reglas, IA, solucionador de tsume, SFEN/KIF y
-contenido educativo en TypeScript puro, compartido por la web y la futura app móvil.
+contenido educativo en TypeScript puro, compartido por la web y la app móvil.
 
 ## Tecnologías
 
 - **Web:** React 19, TypeScript y Vite.
 - **Motor:** TypeScript puro, con tests en Vitest.
-- **Móvil:** React Native y Expo (prevista).
+- **Móvil:** React Native 0.88 y Expo SDK 58.
 - **Backend:** Python, FastAPI y SQLAlchemy.
 - **Base de datos:** PostgreSQL.
 - **CI:** GitHub Actions.
@@ -46,7 +49,8 @@ contenido educativo en TypeScript puro, compartido por la web y la futura app m�
 | `packages/engine/` | ✅ | Motor de reglas e IA compartido |
 | `backend/` | ✅ | API (FastAPI + SQLAlchemy) |
 | `database/` | ✅ | Esquema PostgreSQL |
-| `apps/mobile/` | ⏳ | Aplicación móvil (React Native + Expo) |
+| `apps/mobile/` | ✅ | Aplicación móvil (Expo + React Native) |
+| `packages/react/` | ✅ | Hooks de React compartidos por web y móvil |
 | `docs/` | ⏳ | Documentación técnica |
 
 ## Desarrollo
@@ -56,6 +60,7 @@ npm install          # instala la web y el motor (npm workspaces)
 npm run dev          # web en http://localhost:5173
 npm test             # tests del motor
 npm run lint && npm run build
+npm run mobile       # app móvil con Expo
 ```
 
 Backend y base de datos:
@@ -73,8 +78,9 @@ en cada push.
 
 ## Estado del proyecto
 
-En desarrollo. La aplicación web está completa; el backend y la base de
-datos están operativos. Falta la aplicación móvil.
+En desarrollo. La aplicación web está completa; el backend, la base de datos
+y la aplicación móvil están operativos. Pendiente: cuentas y sincronización
+en la app móvil, despliegue y partidas en línea.
 
 ## Licencia
 

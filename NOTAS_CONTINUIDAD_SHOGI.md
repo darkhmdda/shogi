@@ -9,7 +9,10 @@
   guardado automático, progreso y cuenta opcional (VITE_API_URL).
 - Backend FastAPI en `backend/` (10 tests, probados también contra PostgreSQL).
 - Esquema PostgreSQL en `database/schema.sql`; `docker compose up` levanta todo.
-- CI en `.github/workflows/ci.yml`: motor, web y backend con PostgreSQL.
+- App móvil Expo SDK 58 en `apps/mobile` (inicio, lecciones, problemas, jugar).
+- `packages/react`: hook `useMoveInput` compartido por web y móvil.
+- Una sola versión de React (19.3.0) forzada con `overrides` en la raíz.
+- CI en `.github/workflows/ci.yml`: motor, web, móvil y backend con PostgreSQL.
 
 ## Decisión sobre bibliotecas externas
 Se descartaron @huguzturk/shogijs y shogiops:
@@ -25,7 +28,7 @@ uchifuzume, jaque, jaque mate, derrota sin jugadas legales, sennichite
 (tablas) y jaque perpetuo (pierde quien da jaque).
 
 ## Pendiente (siguientes pasos sugeridos)
-1. App móvil (Expo) reutilizando `@shogi/engine`.
+1. Cuentas y sincronización en la app móvil (reutilizar la API de `apps/web/src/api.ts`).
 2. Migraciones con Alembic cuando cambie el esquema.
 3. Más contenido: tsume de 5 jugadas, lecciones de aperturas y castillos.
 4. Partidas en línea entre usuarios (WebSockets).

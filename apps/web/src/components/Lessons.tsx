@@ -5,7 +5,7 @@ import { LESSONS, goalSatisfied, type Lesson } from '@shogi/engine'
 import { fromSfen } from '@shogi/engine'
 import { applyMove } from '@shogi/engine'
 import type { Move, Position } from '@shogi/engine'
-import { useMoveInput } from '../hooks/useMoveInput'
+import { useMoveInput } from '@shogi/react'
 import { completeLesson, useProgress } from '../progress'
 import BoardView, { PromotionChoice } from './BoardView'
 

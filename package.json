@@ -4,13 +4,20 @@
   "description": "Aplicación multiplataforma para aprender y jugar shōgi.",
   "workspaces": [
     "packages/engine",
-    "apps/web"
+    "packages/react",
+    "apps/web",
+    "apps/mobile"
   ],
   "scripts": {
     "dev": "npm run dev --workspace web",
     "build": "npm run build --workspace web",
     "lint": "npm run lint --workspace web",
     "test": "npm test --workspace @shogi/engine",
-    "typecheck": "npm run typecheck --workspace @shogi/engine"
+    "typecheck": "npm run typecheck --workspace @shogi/engine --workspace @shogi/react --workspace mobile",
+    "mobile": "npm start --workspace mobile"
+  },
+  "overrides": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   }
 }

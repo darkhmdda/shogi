@@ -1,0 +1,25 @@
+export const colors = {
+  background: '#f5f3ee',
+  surface: '#fffdf8',
+  surfaceAlt: '#fbf7ee',
+  border: '#e4d6bd',
+  text: '#292c26',
+  muted: '#777164',
+  accent: '#a84739',
+  wood: '#ead6ad',
+  woodLine: '#8e704a',
+  piece: '#f7edda',
+  pieceText: '#3f3023',
+  promoted: '#b03a2b',
+  sente: '#2563eb',
+  gote: '#dc2626',
+  hint: '#2f6b3a',
+  success: '#1f4d29',
+  successBg: '#eef6ee',
+  errorBg: '#fff1ec',
+  error: '#9a3412',
+  lastMove: '#e9d48f',
+  check: '#f8b4a8',
+}
+
+export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 }

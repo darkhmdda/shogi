@@ -33,3 +33,7 @@ Thumbs.db
 # Backend
 *.egg-info/
 backend/*.db
+
+# Expo
+apps/mobile/.expo/
+apps/mobile/dist/

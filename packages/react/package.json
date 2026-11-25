@@ -1,0 +1,26 @@
+{
+  "name": "@shogi/react",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hooks de React compartidos por la web y la app móvil (sin dependencias de DOM ni de React Native).",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@shogi/engine": "*"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  },
+  "devDependencies": {
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3"
+  },
+  "license": "MIT"
+}
