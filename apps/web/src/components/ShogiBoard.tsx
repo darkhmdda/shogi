@@ -1,40 +1,28 @@
 import './ShogiBoard.css'
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import type { Difficulty } from '../engine/ai'
-import { explainIllegalBoardMove, explainIllegalDrop, describeMove } from '../engine/explain'
-import { isCheck, newGame, playMove, resign, undo, type GameState } from '../engine/game'
-import { FILE_LABELS, formatMove, RANK_LABELS, squareLabel } from '../engine/notation'
+import { describeMove } from '../engine/explain'
 import {
-  JAPANESE_NAMES,
-  OWNER_LABEL,
-  OWNER_SHORT,
-  PIECE_KANJI,
-  PIECE_NAMES,
-  PIECE_TIPS,
-  pieceKanji,
-  pieceMovement,
-  pieceName,
-} from '../engine/pieces'
+  declareImpasse,
+  isCheck,
+  newGame,
+  playMove,
+  resign,
+  undo,
+  type GameState,
+} from '../engine/game'
+import { formatMove } from '../engine/notation'
+import { JAPANESE_NAMES, OWNER_LABEL, OWNER_SHORT, PIECE_TIPS, pieceKanji, pieceName } from '../engine/pieces'
 import { PRACTICE_POSITIONS, type PracticePosition } from '../engine/positions'
-import {
-  findKing,
-  HAND_ORDER,
-  legalDrops,
-  legalMovesFrom,
-  otherOwner,
-  sameSquare,
-} from '../engine/rules'
-import type { GameResult, HandKind, Move, Owner, Piece, Square } from '../engine/types'
+import { deserializeGame, fromSfen, serializeGame, toKif, toSfen, type SavedGame } from '../engine/record'
+import { impasseStatus, otherOwner } from '../engine/rules'
+import type { GameResult, Move, Owner } from '../engine/types'
 import { useAiPlayer } from '../hooks/useAiPlayer'
+import { useMoveInput } from '../hooks/useMoveInput'
+import { recordGame, useProgress } from '../progress'
+import BoardView, { PromotionChoice } from './BoardView'
 
 type Mode = 'ai' | 'local'
-
-type Selection =
-  | { type: 'square'; square: Square }
-  | { type: 'hand'; kind: HandKind }
-  | null
-
-type PendingPromotion = { from: Square; to: Square }
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = {
   easy: 'Fácil',
@@ -42,7 +30,26 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
   hard: 'Difícil',
 }
 
-const INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+const STORAGE_KEY = 'shogi.game.v1'
+
+type StoredSession = {
+  game: SavedGame
+  mode: Mode
+  humanSide: Owner
+  difficulty: Difficulty
+  practiceId: string | null
+}
+
+function loadSession(): (StoredSession & { state: GameState }) | null {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const stored = JSON.parse(raw) as StoredSession
+    return { ...stored, state: deserializeGame(stored.game) }
+  } catch {
+    return null
+  }
+}
 
 function resultMessage(result: GameResult): string {
   const winner = result.winner ? OWNER_LABEL[result.winner] : ''
@@ -59,33 +66,32 @@ function resultMessage(result: GameResult): string {
       return `Jaque perpetuo: ${loser} repitió la posición dando jaque continuamente y pierde. Gana ${winner}.`
     case 'resignation':
       return `${loser} se rinde. Gana ${winner}.`
+    case 'impasse':
+      return `Impasse (入玉宣言): ${winner} declara con éxito y gana.`
   }
 }
 
-function ShogiPiece({ piece, upsideDown }: { piece: Piece; upsideDown: boolean }) {
-  return (
-    <span
-      className={`shogi-piece${upsideDown ? ' upside-down' : ''}${piece.promoted ? ' promoted' : ''}`}
-      aria-hidden="true"
-    >
-      {pieceKanji(piece)}
-    </span>
-  )
-}
-
 export default function ShogiBoard() {
-  const [game, setGame] = useState<GameState>(() => newGame())
-  const [selection, setSelection] = useState<Selection>(null)
-  const [pendingPromotion, setPendingPromotion] = useState<PendingPromotion | null>(null)
-  const [mode, setMode] = useState<Mode>('ai')
-  const [humanSide, setHumanSide] = useState<Owner>('sente')
-  const [difficulty, setDifficulty] = useState<Difficulty>('normal')
+  const [restored] = useState(loadSession)
+  const [game, setGame] = useState<GameState>(() => restored?.state ?? newGame())
+  const [mode, setMode] = useState<Mode>(restored?.mode ?? 'ai')
+  const [humanSide, setHumanSide] = useState<Owner>(restored?.humanSide ?? 'sente')
+  const [difficulty, setDifficulty] = useState<Difficulty>(restored?.difficulty ?? 'normal')
+  const [practice, setPractice] = useState<PracticePosition | null>(
+    () => PRACTICE_POSITIONS.find((p) => p.id === restored?.practiceId) ?? null,
+  )
   const [showHints, setShowHints] = useState(true)
   const [message, setMessage] = useState(
-    'Juegas con Sente (azul). Selecciona una pieza para ver sus movimientos posibles.',
+    restored && restored.state.history.length > 0
+      ? 'Partida recuperada: continúa donde la dejaste.'
+      : 'Juegas con Sente (azul). Selecciona una pieza para ver sus movimientos posibles.',
   )
-  const [practice, setPractice] = useState<PracticePosition | null>(null)
+  const [hintMove, setHintMove] = useState<{ game: GameState; move: Move } | null>(null)
+  const [hintLoading, setHintLoading] = useState(false)
+  const [lastSearch, setLastSearch] = useState<string | null>(null)
+  const [sfenInput, setSfenInput] = useState('')
   const { requestMove, cancel } = useAiPlayer()
+  const progress = useProgress()
 
   const { position, result } = game
   const aiSide = otherOwner(humanSide)
@@ -94,16 +100,15 @@ export default function ShogiBoard() {
   const thinking = aiActive && !result && position.turn === aiSide
   const inCheck = isCheck(game)
   const flipped = aiActive && humanSide === 'gote'
-  const lastEntry = game.history.at(-1)
-  const lastMove = lastEntry?.move
+  const lastMove = game.history.at(-1)?.move
+  const impasse = useMemo(() => impasseStatus(position), [position])
+  const hint = hintMove?.game === game ? hintMove.move : null
 
-  const targets = useMemo<Square[]>(() => {
-    if (!selection || result) return []
-    if (selection.type === 'hand') return legalDrops(position, selection.kind)
-    return legalMovesFrom(position, selection.square).map((move) => move.to)
-  }, [selection, position, result])
-
-  const checkedKing = inCheck ? findKing(position.board, position.turn) : null
+  const input = useMoveInput(position, {
+    enabled: isHumanTurn && !result,
+    onMove: (move) => commit(game, move, false),
+    onMessage: setMessage,
+  })
 
   const kifu = useMemo(
     () =>
@@ -113,6 +118,28 @@ export default function ShogiBoard() {
       }),
     [game.history],
   )
+
+  // Guardado automático de la partida en el navegador.
+  useEffect(() => {
+    try {
+      const session: StoredSession = {
+        game: serializeGame(game),
+        mode,
+        humanSide,
+        difficulty,
+        practiceId: practice?.id ?? null,
+      }
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
+    } catch {
+      // Sin almacenamiento disponible: no se guarda.
+    }
+  }, [game, mode, humanSide, difficulty, practice])
+
+  function finish(next: GameState) {
+    if (!next.result || !aiActive) return
+    if (next.result.winner === null) recordGame('drawn')
+    else recordGame(next.result.winner === humanSide ? 'won' : 'lost')
+  }
 
   function commit(current: GameState, move: Move, byMachine: boolean) {
     const next = playMove(current, move)
@@ -129,9 +156,8 @@ export default function ShogiBoard() {
     }
 
     setGame(next)
-    setSelection(null)
-    setPendingPromotion(null)
     setMessage(text)
+    finish(next)
   }
 
   // El efecto de la máquina usa siempre la versión más reciente de `commit`.
@@ -144,139 +170,104 @@ export default function ShogiBoard() {
   useEffect(() => {
     if (!aiActive || result || position.turn !== aiSide) return
 
-    return requestMove(position, difficulty, (move) => {
-      if (move) commitRef.current(game, move, true)
+    return requestMove(position, difficulty, (info) => {
+      if (!info.move) return
+      setLastSearch(
+        info.fromBook
+          ? 'Jugada de libro de aperturas.'
+          : `Profundidad ${info.depth}, ${info.nodes.toLocaleString('es')} posiciones analizadas.`,
+      )
+      commitRef.current(game, info.move, true)
     })
   }, [game, position, result, aiActive, aiSide, difficulty, requestMove])
 
-  function startGame(nextPractice: PracticePosition | null, note?: string) {
+  function startGame(nextPractice: PracticePosition | null, note?: string, start?: GameState) {
     cancel()
-    const start = nextPractice ? nextPractice.create() : undefined
-    setGame(newGame(start))
+    setHintLoading(false)
+    setGame(start ?? newGame(nextPractice ? nextPractice.create() : undefined))
     setPractice(nextPractice)
-    setSelection(null)
-    setPendingPromotion(null)
+    setLastSearch(null)
     setMessage(
-      note ??
-        (nextPractice
-          ? nextPractice.description
-          : 'Nueva partida. Sente (azul) mueve primero.'),
+      note ?? (nextPractice ? nextPractice.description : 'Nueva partida. Sente (azul) mueve primero.'),
     )
   }
 
   function handleUndo() {
     if (game.history.length === 0) return
     cancel()
-    // Contra la máquina se deshace también su respuesta.
+    setHintLoading(false)
     const plies = aiActive && position.turn === humanSide && game.history.length >= 2 ? 2 : 1
     setGame(undo(game, plies))
-    setSelection(null)
-    setPendingPromotion(null)
     setMessage(plies === 2 ? 'Se han deshecho tu última jugada y la respuesta de la máquina.' : 'Jugada deshecha.')
   }
 
   function handleResign() {
     if (result) return
-    const loser = aiActive ? humanSide : position.turn
     cancel()
-    const next = resign(game, loser)
+    const next = resign(game, aiActive ? humanSide : position.turn)
     setGame(next)
-    setSelection(null)
-    setPendingPromotion(null)
     setMessage(resultMessage(next.result!))
+    finish(next)
   }
 
-  function selectHandPiece(kind: HandKind) {
-    if (pendingPromotion || result || !isHumanTurn) return
-
-    if (selection?.type === 'hand' && selection.kind === kind) {
-      setSelection(null)
-      return
-    }
-
-    const count = legalDrops(position, kind).length
-    setSelection({ type: 'hand', kind })
-    setMessage(
-      count > 0
-        ? `${PIECE_KANJI[kind]} (${PIECE_NAMES[kind]}) seleccionado: puedes colocarlo en ${count} casillas.`
-        : `${PIECE_KANJI[kind]} (${PIECE_NAMES[kind]}): ahora mismo no hay ninguna casilla donde colocarlo legalmente.`,
-    )
+  function handleImpasse() {
+    if (result || !impasse.canDeclare) return
+    cancel()
+    const next = declareImpasse(game)
+    setGame(next)
+    setMessage(resultMessage(next.result!))
+    finish(next)
   }
 
-  function handleSquare(square: Square) {
-    if (result || pendingPromotion || !isHumanTurn) return
-
-    const clicked = position.board[square.row][square.col]
-
-    if (selection?.type === 'hand') {
-      const reason = explainIllegalDrop(position, selection.kind, square)
-      if (reason) {
-        if (clicked?.owner === position.turn) {
-          setSelection({ type: 'square', square })
-          setMessage(describeSelection(clicked))
-          return
-        }
-        setMessage(reason)
-        return
-      }
-      commit(game, { type: 'drop', piece: selection.kind, to: square }, false)
-      return
-    }
-
-    if (selection?.type === 'square') {
-      const from = selection.square
-
-      if (sameSquare(from, square)) {
-        setSelection(null)
-        setMessage('Selección cancelada.')
-        return
-      }
-
-      if (clicked?.owner === position.turn) {
-        setSelection({ type: 'square', square })
-        setMessage(describeSelection(clicked))
-        return
-      }
-
-      const options = legalMovesFrom(position, from).filter((move) => sameSquare(move.to, square))
-
-      if (options.length === 0) {
-        setMessage(explainIllegalBoardMove(position, from, square) ?? 'Movimiento no válido.')
-        return
-      }
-
-      if (options.length === 1) {
-        commit(game, options[0], false)
-        return
-      }
-
-      setPendingPromotion({ from, to: square })
-      setMessage('Tu pieza entra, sale o se mueve dentro de la zona de promoción. ¿Quieres promocionarla?')
-      return
-    }
-
-    if (clicked?.owner === position.turn) {
-      setSelection({ type: 'square', square })
-      setMessage(describeSelection(clicked))
-    } else if (clicked) {
-      setMessage(`Esa pieza es de ${OWNER_LABEL[clicked.owner]}. Ahora juega ${OWNER_LABEL[position.turn]}.`)
-    }
-  }
-
-  function describeSelection(piece: Piece): string {
-    return `${pieceKanji(piece)} · ${pieceName(piece)}. ${pieceMovement(piece)}`
-  }
-
-  function choosePromotion(promote: boolean) {
-    if (!pendingPromotion) return
-    const { from, to } = pendingPromotion
-    commit(game, { type: 'move', from, to, promote }, false)
+  function handleHint() {
+    if (result || !isHumanTurn || hintLoading) return
+    setHintLoading(true)
+    const forGame = game
+    requestMove(position, 'hard', (info) => {
+      setHintLoading(false)
+      if (!info.move) return
+      setHintMove({ game: forGame, move: info.move })
+      const previous = forGame.history.at(-1)?.move.to ?? null
+      setMessage(
+        `Pista: la máquina jugaría ${formatMove(forGame.position, info.move, previous)}. ${describeMove(forGame.position, info.move)}`,
+      )
+    })
   }
 
   function handleKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      setSelection(null)
-      setPendingPromotion(null)
+    if (event.key === 'Escape') input.clear()
+  }
+
+  function downloadKif() {
+    const sente = aiActive ? (humanSide === 'sente' ? 'Jugador' : 'Máquina') : 'Sente'
+    const gote = aiActive ? (humanSide === 'gote' ? 'Jugador' : 'Máquina') : 'Gote'
+    const blob = new Blob([toKif(game, sente, gote)], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `partida-shogi-${new Date().toISOString().slice(0, 10)}.kif`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  async function copySfen() {
+    const sfen = toSfen(position, game.history.length + 1)
+    try {
+      await navigator.clipboard.writeText(sfen)
+      setMessage(`SFEN copiado: ${sfen}`)
+    } catch {
+      setSfenInput(sfen)
+      setMessage('No se pudo copiar automáticamente; el SFEN está en el cuadro de texto.')
+    }
+  }
+
+  function loadSfen() {
+    try {
+      const start = fromSfen(sfenInput)
+      setMode('local')
+      startGame(null, 'Posición SFEN cargada en modo dos jugadores.', newGame(start))
+    } catch (error) {
+      setMessage(`No se pudo leer el SFEN: ${(error as Error).message}`)
     }
   }
 
@@ -286,52 +277,12 @@ export default function ShogiBoard() {
       ? 'La máquina está pensando…'
       : `Turno de ${OWNER_LABEL[position.turn]}${inCheck ? ' — ¡JAQUE!' : ''}`
 
-  const rows = flipped ? [...INDICES].reverse() : INDICES
-  const cols = flipped ? [...INDICES].reverse() : INDICES
-
   const selectedPiece =
-    selection?.type === 'square' ? position.board[selection.square.row][selection.square.col] : null
+    input.selection?.type === 'square'
+      ? position.board[input.selection.square.row][input.selection.square.col]
+      : null
 
-  function renderHand(owner: Owner) {
-    const hand = position.hands[owner]
-    const isTurn = owner === position.turn
-    const canUse = isTurn && isHumanTurn && !result && !pendingPromotion
-    const total = HAND_ORDER.reduce((sum, kind) => sum + hand[kind], 0)
-
-    return (
-      <div className={`shogi-hand ${owner}${isTurn && !result ? ' active' : ''}`}>
-        <strong>
-          {owner === 'sente' ? '☗' : '☖'} Mano de {OWNER_SHORT[owner]}
-          {aiActive && owner === aiSide ? ' · máquina' : ''}
-        </strong>
-
-        <div className="shogi-hand-pieces">
-          {HAND_ORDER.map((kind) => {
-            const count = hand[kind]
-            if (count === 0) return null
-            const isSelected = isTurn && selection?.type === 'hand' && selection.kind === kind
-
-            return (
-              <button
-                type="button"
-                key={kind}
-                className={`shogi-hand-piece${isSelected ? ' selected' : ''}`}
-                disabled={!canUse}
-                onClick={() => selectHandPiece(kind)}
-                aria-pressed={isSelected}
-                aria-label={`${PIECE_NAMES[kind]} en la mano, cantidad ${count}`}
-              >
-                <span aria-hidden="true">{PIECE_KANJI[kind]}</span>
-                {count > 1 && <small aria-hidden="true">×{count}</small>}
-              </button>
-            )
-          })}
-
-          {total === 0 && <span className="shogi-hand-empty">Sin piezas</span>}
-        </div>
-      </div>
-    )
-  }
+  const showImpasse = !result && isHumanTurn && impasse.kingInZone
 
   return (
     <section className="shogi-game" aria-label="Partida de shōgi" onKeyDown={handleKeyDown}>
@@ -340,112 +291,32 @@ export default function ShogiBoard() {
       </p>
 
       <div className="shogi-layout">
-        <div className="shogi-board-column">
-          {renderHand(flipped ? 'sente' : 'gote')}
-
-          <div className="shogi-board-coordinate-frame">
-            <div className="shogi-file-coordinates" aria-hidden="true">
-              {cols.map((col) => (
-                <span key={col}>{FILE_LABELS[col]}</span>
-              ))}
-            </div>
-
-            <div className="shogi-board-and-ranks">
-              <div className="shogi-rank-coordinates" aria-hidden="true">
-                {rows.map((row) => (
-                  <span key={row}>{RANK_LABELS[row]}</span>
-                ))}
-              </div>
-
-              <div className="shogi-grid" role="grid" aria-label="Tablero de 9 por 9">
-                {rows.map((row) => (
-                  <div className="shogi-row" role="row" key={row}>
-                    {cols.map((col) => {
-                      const square = { row, col }
-                      const piece = position.board[row][col]
-                      const isSelected = selection?.type === 'square' && sameSquare(selection.square, square)
-                      const isTarget = showHints && targets.some((t) => sameSquare(t, square))
-                      const isLast =
-                        lastMove !== undefined &&
-                        (sameSquare(lastMove.to, square) ||
-                          (lastMove.type === 'move' && sameSquare(lastMove.from, square)))
-                      const isChecked = checkedKing !== null && sameSquare(checkedKing, square)
-                      const isPending = pendingPromotion !== null && sameSquare(pendingPromotion.to, square)
-
-                      const classes = [
-                        'shogi-square',
-                        isSelected && `selected-${position.turn}`,
-                        isTarget && (piece ? 'capture-hint' : 'move-hint'),
-                        isLast && 'last-move',
-                        isChecked && 'in-check',
-                        isPending && 'pending',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')
-
-                      const label = `${squareLabel(square)}, ${
-                        piece ? `${pieceName(piece)} de ${OWNER_SHORT[piece.owner]}` : 'vacía'
-                      }${isTarget ? ', destino posible' : ''}${isChecked ? ', rey en jaque' : ''}`
-
-                      return (
-                        <button
-                          type="button"
-                          role="gridcell"
-                          className={classes}
-                          key={col}
-                          onClick={() => handleSquare(square)}
-                          aria-label={label}
-                          aria-selected={isSelected}
-                        >
-                          {piece && (
-                            <ShogiPiece piece={piece} upsideDown={(piece.owner === 'gote') !== flipped} />
-                          )}
-                        </button>
-                      )
-                    })}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {renderHand(flipped ? 'gote' : 'sente')}
-        </div>
+        <BoardView
+          position={position}
+          selection={input.selection}
+          targets={input.targets}
+          pending={input.pending}
+          lastMove={hint ?? lastMove}
+          flipped={flipped}
+          showHints={showHints}
+          canUseHand={(owner) => owner === position.turn && isHumanTurn && !result && !input.pending}
+          handLabel={(owner) => `Mano de ${OWNER_SHORT[owner]}${aiActive && owner === aiSide ? ' · máquina' : ''}`}
+          onSquare={input.selectSquare}
+          onHand={input.selectHand}
+        />
 
         <aside className="shogi-side-panel" aria-label="Información y controles">
           <div className="shogi-panel-section">
             <h3>Explicación</h3>
             <p className="shogi-message" aria-live="polite">{message}</p>
+            {lastSearch && aiActive && <p className="muted search-info">{lastSearch}</p>}
           </div>
 
-          {pendingPromotion && (
-            <div className="promotion-choice shogi-panel-section" role="group" aria-label="Elegir promoción">
-              <h3>Promoción</h3>
-              {(() => {
-                const piece = position.board[pendingPromotion.from.row][pendingPromotion.from.col]
-                if (!piece) return null
-                const promoted = { ...piece, promoted: true }
-                return (
-                  <p>
-                    <span className="promotion-preview" aria-hidden="true">
-                      {pieceKanji(piece)} → <em>{pieceKanji(promoted)}</em>
-                    </span>
-                    <strong>{capitalize(pieceName(promoted))}</strong>: {pieceMovement(promoted)}
-                  </p>
-                )
-              })()}
-              <div className="promotion-buttons">
-                <button type="button" onClick={() => choosePromotion(true)}>
-                  Promocionar
-                </button>
-                <button type="button" className="secondary" onClick={() => choosePromotion(false)}>
-                  No promocionar
-                </button>
-              </div>
-            </div>
+          {input.pending && (
+            <PromotionChoice position={position} pending={input.pending} onChoose={input.choosePromotion} />
           )}
 
-          {selectedPiece && !pendingPromotion && (
+          {selectedPiece && !input.pending && (
             <div className="shogi-panel-section piece-info">
               <div className="piece-info-head">
                 <span className={`piece-info-kanji${selectedPiece.promoted ? ' promoted' : ''}`} aria-hidden="true">
@@ -453,11 +324,30 @@ export default function ShogiBoard() {
                 </span>
                 <div>
                   <h3>{capitalize(pieceName(selectedPiece))}</h3>
-                  <small>{JAPANESE_NAMES[selectedPiece.kind]}{selectedPiece.promoted ? ' (promocionada)' : ''}</small>
+                  <small>
+                    {JAPANESE_NAMES[selectedPiece.kind]}
+                    {selectedPiece.promoted ? ' (promocionada)' : ''}
+                  </small>
                 </div>
               </div>
               <p>{PIECE_TIPS[selectedPiece.kind]}</p>
-              <p className="muted">{targets.length} destinos posibles.</p>
+              <p className="muted">{input.targets.length} destinos posibles.</p>
+            </div>
+          )}
+
+          {showImpasse && (
+            <div className="shogi-panel-section impasse">
+              <h3>Impasse (jishōgi)</h3>
+              <p>
+                Tu rey ha entrado en campo rival. Puntos: <strong>{impasse.points}</strong> / {impasse.pointsNeeded} ·
+                Piezas en zona: <strong>{impasse.piecesInZone}</strong> / 10
+                {impasse.inCheck ? ' · No puedes declarar estando en jaque.' : ''}
+              </p>
+              <div className="shogi-buttons">
+                <button type="button" onClick={handleImpasse} disabled={!impasse.canDeclare}>
+                  Declarar impasse y ganar
+                </button>
+              </div>
             </div>
           )}
 
@@ -487,7 +377,10 @@ export default function ShogiBoard() {
                     onChange={(event) => {
                       const side = event.target.value as Owner
                       setHumanSide(side)
-                      startGame(null, `Nueva partida: juegas con ${OWNER_LABEL[side]}.${side === 'gote' ? ' La máquina mueve primero.' : ''}`)
+                      startGame(
+                        null,
+                        `Nueva partida: juegas con ${OWNER_LABEL[side]}.${side === 'gote' ? ' La máquina mueve primero.' : ''}`,
+                      )
                     }}
                   >
                     <option value="sente">Sente (azul, empieza)</option>
@@ -514,10 +407,26 @@ export default function ShogiBoard() {
             </label>
 
             <div className="shogi-buttons">
-              <button type="button" onClick={() => startGame(null)}>Nueva partida</button>
-              <button type="button" onClick={handleUndo} disabled={game.history.length === 0}>Deshacer</button>
-              <button type="button" onClick={handleResign} disabled={result !== null}>Rendirse</button>
+              <button type="button" onClick={() => startGame(null)}>
+                Nueva partida
+              </button>
+              <button type="button" onClick={handleUndo} disabled={game.history.length === 0}>
+                Deshacer
+              </button>
+              <button type="button" onClick={handleHint} disabled={result !== null || !isHumanTurn || hintLoading}>
+                {hintLoading ? 'Pensando…' : 'Pista'}
+              </button>
+              <button type="button" onClick={handleResign} disabled={result !== null}>
+                Rendirse
+              </button>
             </div>
+
+            {progress.games.played > 0 && (
+              <p className="muted">
+                Contra la máquina: {progress.games.won} victorias · {progress.games.lost} derrotas ·{' '}
+                {progress.games.drawn} tablas
+              </p>
+            )}
           </div>
 
           <div className="shogi-panel-section">
@@ -550,6 +459,36 @@ export default function ShogiBoard() {
               </ol>
             )}
           </div>
+
+          <details className="shogi-panel-section export-panel">
+            <summary>Exportar e importar</summary>
+            <div className="shogi-buttons">
+              <button type="button" onClick={downloadKif} disabled={game.history.length === 0}>
+                Descargar KIF
+              </button>
+              <button type="button" onClick={copySfen}>
+                Copiar SFEN
+              </button>
+            </div>
+            <label className="sfen-label">
+              Cargar posición SFEN
+              <textarea
+                value={sfenInput}
+                onChange={(event) => setSfenInput(event.target.value)}
+                rows={3}
+                placeholder="lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1"
+                spellCheck={false}
+              />
+            </label>
+            <div className="shogi-buttons">
+              <button type="button" onClick={loadSfen} disabled={sfenInput.trim() === ''}>
+                Cargar SFEN
+              </button>
+            </div>
+            <p className="muted">
+              KIF es el formato de registro japonés más extendido; SFEN describe una posición en una sola línea.
+            </p>
+          </details>
         </aside>
       </div>
     </section>

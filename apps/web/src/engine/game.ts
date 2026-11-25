@@ -3,6 +3,7 @@ import {
   createInitialPosition,
   generateLegalMoves,
   hasAnyLegalMove,
+  impasseStatus,
   isInCheck,
   movesEqual,
   otherOwner,
@@ -91,6 +92,20 @@ export function undo(state: GameState, plies = 1): GameState {
 
 export function resign(state: GameState, loser: Owner): GameState {
   return { ...state, result: { winner: otherOwner(loser), reason: 'resignation' } }
+}
+
+/** Declaración de impasse (jishōgi). Si no se cumplen las condiciones, pierde quien declara. */
+export function declareImpasse(state: GameState): GameState {
+  if (state.result) return state
+  const owner = state.position.turn
+  const status = impasseStatus(state.position)
+  return {
+    ...state,
+    result: {
+      winner: status.canDeclare ? owner : otherOwner(owner),
+      reason: 'impasse',
+    },
+  }
 }
 
 function evaluateResult(state: GameState): GameResult | null {

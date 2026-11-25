@@ -1,0 +1,220 @@
+.training {
+  display: grid;
+  grid-template-columns: minmax(200px, 250px) minmax(0, 500px) minmax(220px, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.training-list {
+  display: grid;
+  gap: 6px;
+}
+
+.training-progress {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 6px;
+  color: #5f5a4e;
+  font-size: 0.85rem;
+}
+
+.progress-bar {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e4d6bd;
+}
+
+.progress-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #2f6b3a;
+  transition: width 0.3s ease;
+}
+
+.training-item {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid #e4d6bd;
+  border-radius: 8px;
+  background: #fffdf8;
+  color: #292c26;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.training-item.active {
+  border-color: #413326;
+  box-shadow: inset 3px 0 0 #a84739;
+}
+
+.training-item strong {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.training-item small {
+  display: block;
+  color: #777164;
+  font-size: 0.78rem;
+}
+
+.training-kanji {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #f0e3c8;
+  font-family: serif;
+  font-size: 1.15rem;
+}
+
+.training-done {
+  color: #2f6b3a;
+  font-weight: 700;
+}
+
+.training-group h4 {
+  margin: 8px 0 6px;
+  font-size: 0.85rem;
+}
+
+.training-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.training-chip {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #cdbb9a;
+  border-radius: 8px;
+  background: #fffdf8;
+  color: #413326;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.training-chip.done {
+  border-color: #2f6b3a;
+  background: #eef6ee;
+  color: #1f4d29;
+}
+
+.training-chip.active {
+  outline: 2px solid #a84739;
+  outline-offset: 1px;
+}
+
+.training-item:focus-visible,
+.training-chip:focus-visible {
+  outline: 3px solid #0f766e;
+  outline-offset: 2px;
+}
+
+.training-rules {
+  margin-top: 8px;
+  line-height: 1.45;
+}
+
+.training-board {
+  min-width: 0;
+}
+
+.training-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.training-panel h3 {
+  margin: 0;
+}
+
+.training-step {
+  color: #a84739;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.training-instruction {
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.training-feedback {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f5efe4;
+  line-height: 1.5;
+}
+
+.training-feedback.success {
+  background: #eef6ee;
+  color: #1f4d29;
+}
+
+.training-feedback.error {
+  background: #fff1ec;
+  color: #9a3412;
+}
+
+.training-hint {
+  padding: 10px 12px;
+  border-left: 3px solid #d4a72c;
+  background: #fdf7e3;
+  line-height: 1.5;
+}
+
+.training-moves {
+  font-family: serif;
+  font-size: 1.05rem;
+}
+
+@media (max-width: 1100px) {
+  .training {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+  }
+
+  .training-list {
+    grid-column: 1 / -1;
+  }
+
+  .training-list:has(.training-item) {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  }
+
+  .training-list .training-progress {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 759px) {
+  .training {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .training-list:has(.training-item) {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .training-list .training-item {
+    flex: 0 0 210px;
+  }
+
+  .training-list .training-progress {
+    flex: 0 0 160px;
+  }
+}

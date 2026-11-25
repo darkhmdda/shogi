@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { chooseMove, type Difficulty } from '../engine/ai'
+import { search, type Difficulty, type SearchInfo } from '../engine/ai'
 import type { AiRequest, AiResponse } from '../engine/ai.worker'
-import type { Move, Position } from '../engine/types'
+import type { Position } from '../engine/types'
 
 /**
  * Calcula jugadas de la máquina en un Web Worker para no bloquear la interfaz.
@@ -10,7 +10,7 @@ import type { Move, Position } from '../engine/types'
 export function useAiPlayer() {
   const workerRef = useRef<Worker | null>(null)
   const requestId = useRef(0)
-  const pending = useRef<((move: Move | null) => void) | null>(null)
+  const pending = useRef<((info: SearchInfo) => void) | null>(null)
 
   useEffect(() => {
     if (typeof Worker === 'undefined') return
@@ -23,7 +23,7 @@ export function useAiPlayer() {
       if (event.data.id !== requestId.current) return
       const resolve = pending.current
       pending.current = null
-      resolve?.(event.data.move)
+      resolve?.(event.data.info)
     }
 
     workerRef.current = worker
@@ -39,18 +39,18 @@ export function useAiPlayer() {
   }, [])
 
   const requestMove = useCallback(
-    (position: Position, difficulty: Difficulty, onMove: (move: Move | null) => void) => {
+    (position: Position, difficulty: Difficulty, onResult: (info: SearchInfo) => void) => {
       const id = ++requestId.current
       const worker = workerRef.current
 
       if (!worker) {
         const timer = window.setTimeout(() => {
-          if (id === requestId.current) onMove(chooseMove(position, difficulty))
+          if (id === requestId.current) onResult(search(position, difficulty))
         }, 0)
         return () => window.clearTimeout(timer)
       }
 
-      pending.current = onMove
+      pending.current = onResult
       const request: AiRequest = { id, position, difficulty }
       worker.postMessage(request)
       return cancel

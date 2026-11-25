@@ -537,3 +537,47 @@
     font-size: 11px;
   }
 }
+
+.search-info {
+  margin-top: 8px !important;
+  font-size: 0.8rem;
+}
+
+.impasse {
+  border-color: #d4a72c;
+  background: #fdf7e3;
+}
+
+.impasse p {
+  margin-bottom: 10px !important;
+}
+
+.export-panel summary {
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.export-panel[open] summary {
+  margin-bottom: 10px;
+}
+
+.export-panel > * + * {
+  margin-top: 10px;
+}
+
+.sfen-label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.sfen-label textarea {
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid #cdbb9a;
+  border-radius: 6px;
+  background: #fffdf8;
+  font: 0.8rem ui-monospace, monospace;
+  resize: vertical;
+}

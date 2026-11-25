@@ -1,6 +1,6 @@
 import { promotionOptions } from './rules'
 import { PIECE_KANJI, PROMOTED_KANJI } from './pieces'
-import type { Move, Position, Square } from './types'
+import type { HandKind, Move, Position, Square } from './types'
 
 export const FILE_LABELS = [9, 8, 7, 6, 5, 4, 3, 2, 1]
 export const RANK_LABELS = ['一', '二', '三', '四', '五', '六', '七', '八', '九']
@@ -66,3 +66,30 @@ export function toUsi(move: Move): string {
   return `${sq(move.from)}${sq(move.to)}${move.promote ? '+' : ''}`
 }
 
+
+const USI_PIECES: Record<string, HandKind> = {
+  R: 'rook', B: 'bishop', G: 'gold', S: 'silver', N: 'knight', L: 'lance', P: 'pawn',
+}
+
+function usiSquare(text: string): Square | null {
+  const file = Number(text[0])
+  const row = text.charCodeAt(1) - 97
+  if (!Number.isInteger(file) || file < 1 || file > 9 || row < 0 || row > 8) return null
+  return { row, col: 9 - file }
+}
+
+/** Convierte un movimiento USI (7g7f, 8h2b+, P*5e) en un movimiento. No comprueba legalidad. */
+export function fromUsi(text: string): Move | null {
+  const trimmed = text.trim()
+
+  if (trimmed[1] === '*') {
+    const piece = USI_PIECES[trimmed[0]]
+    const to = usiSquare(trimmed.slice(2, 4))
+    return piece && to ? { type: 'drop', piece, to } : null
+  }
+
+  const from = usiSquare(trimmed.slice(0, 2))
+  const to = usiSquare(trimmed.slice(2, 4))
+  if (!from || !to) return null
+  return { type: 'move', from, to, promote: trimmed[4] === '+' }
+}

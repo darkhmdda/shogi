@@ -172,16 +172,56 @@ export function attackedSquares(board: Board, from: Square): Square[] {
   return result
 }
 
-export function isSquareAttacked(board: Board, target: Square, by: Owner): boolean {
-  for (let row = 0; row < BOARD_SIZE; row++) {
-    for (let col = 0; col < BOARD_SIZE; col++) {
-      const piece = board[row][col]
-      if (!piece || piece.owner !== by) continue
+/** ¿Ataca `piece` desde una distancia `distance` en la dirección (dr, dc) hacia el objetivo? */
+function attacksAlong(piece: Piece, dr: number, dc: number, distance: number): boolean {
+  // (dr, dc) es la dirección desde la pieza hacia el objetivo, en coordenadas absolutas.
+  const sign = piece.owner === 'sente' ? 1 : -1
+  const pattern = movePatternFor(piece.kind, piece.promoted)
 
-      for (const square of attackedSquares(board, { row, col })) {
-        if (sameSquare(square, target)) return true
-      }
+  if (distance === 1) {
+    for (const [sr, sc] of pattern.steps) {
+      if (sr * sign === dr && sc * sign === dc) return true
     }
+  }
+
+  for (const [sr, sc] of pattern.slides) {
+    if (sr * sign === dr && sc * sign === dc) return true
+  }
+
+  return false
+}
+
+/**
+ * Comprueba si `by` ataca la casilla `target` mirando hacia fuera desde ella:
+ * es mucho más rápido que generar los ataques de todas las piezas.
+ */
+export function isSquareAttacked(board: Board, target: Square, by: Owner): boolean {
+  for (const [dr, dc] of ALL_ADJACENT) {
+    let row = target.row + dr
+    let col = target.col + dc
+    let distance = 1
+
+    while (inBounds(row, col)) {
+      const piece = board[row][col]
+
+      if (piece) {
+        if (piece.owner === by && attacksAlong(piece, -dr, -dc, distance)) return true
+        break
+      }
+
+      row += dr
+      col += dc
+      distance++
+    }
+  }
+
+  // Caballos: atacan desde dos filas "por detrás" del objetivo según su dueño.
+  const knightRow = target.row + (by === 'sente' ? 2 : -2)
+  for (const dc of [-1, 1]) {
+    const col = target.col + dc
+    if (!inBounds(knightRow, col)) continue
+    const piece = board[knightRow][col]
+    if (piece?.owner === by && piece.kind === 'knight' && !piece.promoted) return true
   }
 
   return false
@@ -291,9 +331,29 @@ function pseudoBoardMoves(position: Position, from: Square): BoardMove[] {
   return moves
 }
 
+/**
+ * Comprueba si el movimiento deja al propio rey a salvo. Modifica el tablero
+ * temporalmente y lo restaura antes de volver (evita copiar la posición).
+ */
 function leavesKingSafe(position: Position, move: Move): boolean {
-  const next = applyMove(position, move)
-  return !isInCheck(next.board, position.turn)
+  const board = position.board
+  const owner = position.turn
+  const to = board[move.to.row][move.to.col]
+
+  if (move.type === 'drop') {
+    board[move.to.row][move.to.col] = { kind: move.piece, owner }
+    const safe = !isInCheck(board, owner)
+    board[move.to.row][move.to.col] = to
+    return safe
+  }
+
+  const from = board[move.from.row][move.from.col]
+  board[move.to.row][move.to.col] = from
+  board[move.from.row][move.from.col] = null
+  const safe = !isInCheck(board, owner)
+  board[move.from.row][move.from.col] = from
+  board[move.to.row][move.to.col] = to
+  return safe
 }
 
 export function legalMovesFrom(position: Position, from: Square): BoardMove[] {
@@ -464,4 +524,57 @@ const PIECE_LETTERS: Record<PieceKind, string> = {
   knight: 'N',
   lance: 'L',
   pawn: 'P',
+}
+
+export type ImpasseStatus = {
+  /** Si se cumplen todas las condiciones para declarar y ganar. */
+  canDeclare: boolean
+  kingInZone: boolean
+  piecesInZone: number
+  points: number
+  pointsNeeded: number
+  inCheck: boolean
+}
+
+/**
+ * Jishōgi / nyūgyoku: regla de declaración de 27 puntos (Federación Japonesa).
+ * El bando al que le toca puede declarar y ganar si:
+ * 1. su rey está en la zona rival (tres últimas filas),
+ * 2. tiene al menos 10 piezas más en esa zona,
+ * 3. suma 28 puntos (Sente) o 27 (Gote) entre las piezas de la zona y las de la mano
+ *    (torre y alfil valen 5; el resto, 1; el rey no cuenta),
+ * 4. su rey no está en jaque.
+ */
+export function impasseStatus(position: Position): ImpasseStatus {
+  const owner = position.turn
+  const king = findKing(position.board, owner)
+  const kingInZone = king !== null && inPromotionZone(owner, king.row)
+  let piecesInZone = 0
+  let points = 0
+
+  for (let row = 0; row < BOARD_SIZE; row++) {
+    if (!inPromotionZone(owner, row)) continue
+    for (let col = 0; col < BOARD_SIZE; col++) {
+      const piece = position.board[row][col]
+      if (!piece || piece.owner !== owner || piece.kind === 'king') continue
+      piecesInZone++
+      points += piece.kind === 'rook' || piece.kind === 'bishop' ? 5 : 1
+    }
+  }
+
+  for (const kind of HAND_ORDER) {
+    points += position.hands[owner][kind] * (kind === 'rook' || kind === 'bishop' ? 5 : 1)
+  }
+
+  const pointsNeeded = owner === 'sente' ? 28 : 27
+  const inCheck = isInCheck(position.board, owner)
+
+  return {
+    canDeclare: kingInZone && piecesInZone >= 10 && points >= pointsNeeded && !inCheck,
+    kingInZone,
+    piecesInZone,
+    points,
+    pointsNeeded,
+    inCheck,
+  }
 }

@@ -63,4 +63,5 @@ export type GameResult = {
     | 'repetition'
     | 'perpetual-check'
     | 'resignation'
+    | 'impasse'
 }

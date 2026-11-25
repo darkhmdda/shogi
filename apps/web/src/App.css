@@ -636,3 +636,35 @@
     gap: 13px;
   }
 }
+
+.progress-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 40px;
+}
+
+.progress-strip div {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1px solid #e4d6bd;
+  border-radius: 10px;
+  background: #fffdf8;
+}
+
+.progress-strip strong {
+  font-family: serif;
+  font-size: 1.6rem;
+}
+
+.progress-strip span {
+  color: #777164;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 520px) {
+  .progress-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

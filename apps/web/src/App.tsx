@@ -1,13 +1,18 @@
 
 import './App.css'
 import { useEffect, useState } from 'react'
+import Lessons from './components/Lessons'
 import PieceGuide from './components/PieceGuide'
+import Puzzles from './components/Puzzles'
 import ShogiBoard from './components/ShogiBoard'
+import { LESSONS } from './engine/lessons'
+import { TSUME } from './engine/tsume'
+import { useProgress } from './progress'
 
 const sections = [
   { icon: '⌂', label: 'Inicio', href: '#inicio' },
-  { icon: '書', label: 'Aprender', href: '#piezas' },
-  { icon: '棋', label: 'Practicar', href: '#secciones' },
+  { icon: '書', label: 'Aprender', href: '#aprender' },
+  { icon: '棋', label: 'Practicar', href: '#problemas' },
   { icon: '対', label: 'Jugar', href: '#tablero' },
 ]
 
@@ -26,19 +31,19 @@ function useHash(): string {
 const features = [
   {
     number: '01',
-    title: 'Aprende las piezas',
-    description: 'Conoce cada pieza y descubre cómo se mueve por el tablero.',
+    title: 'Aprende a jugar',
+    description: 'Nueve lecciones interactivas: de mover tu primer peón a dar jaque mate.',
     icon: '駒',
-    action: 'Explorar piezas',
-    href: '#piezas',
+    action: 'Empezar las lecciones',
+    href: '#aprender',
   },
   {
     number: '02',
-    title: 'Practica movimientos',
-    description: 'Resuelve posiciones de práctica: jaques, mates en una, promoción, nifu y uchifuzume.',
+    title: 'Resuelve problemas',
+    description: 'Problemas de mate (tsume) en una y en tres jugadas, con pistas y soluciones.',
     icon: '歩',
-    action: 'Empezar a practicar',
-    href: '#tablero',
+    action: 'Resolver problemas',
+    href: '#problemas',
   },
   {
     number: '03',
@@ -52,6 +57,9 @@ const features = [
 
 function App() {
   const hash = useHash()
+  const progress = useProgress()
+  const lessonsDone = Object.keys(progress.lessons).filter((id) => LESSONS.some((l) => l.id === id)).length
+  const puzzlesDone = Object.keys(progress.puzzles).filter((id) => TSUME.some((t) => t.id === id)).length
 
   return (
     <div className="app-shell">
@@ -175,6 +183,38 @@ function App() {
           </div>
         </section>
 
+        <section className="progress-strip" aria-label="Tu progreso">
+          <div>
+            <strong>{lessonsDone}/{LESSONS.length}</strong>
+            <span>lecciones</span>
+          </div>
+          <div>
+            <strong>{puzzlesDone}/{TSUME.length}</strong>
+            <span>problemas</span>
+          </div>
+          <div>
+            <strong>{progress.games.won}</strong>
+            <span>victorias contra la máquina</span>
+          </div>
+        </section>
+
+        <section className="board-section" id="aprender">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">LECCIONES</span>
+              <h2>Aprende paso a paso</h2>
+            </div>
+            <span className="section-counter">{lessonsDone} / {LESSONS.length}</span>
+          </div>
+
+          <p className="board-intro">
+            Cada lección te pide una jugada concreta en el tablero. Si te
+            equivocas, te explicamos por qué; si te atascas, pide una pista.
+          </p>
+
+          <Lessons />
+        </section>
+
         <section className="board-section" id="piezas">
           <div className="section-heading">
             <div>
@@ -191,6 +231,24 @@ function App() {
           </p>
 
           <PieceGuide />
+        </section>
+
+        <section className="board-section" id="problemas">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">TSUME SHŌGI · 詰将棋</span>
+              <h2>Problemas de mate</h2>
+            </div>
+            <span className="section-counter">{puzzlesDone} / {TSUME.length}</span>
+          </div>
+
+          <p className="board-intro">
+            Los tsume son la mejor forma de mejorar: encuentra el jaque mate en
+            una o en tres jugadas. Todos los problemas están verificados por el
+            motor.
+          </p>
+
+          <Puzzles />
         </section>
 
         <section className="board-section" id="tablero">
