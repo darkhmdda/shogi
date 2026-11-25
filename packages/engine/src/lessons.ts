@@ -12,7 +12,7 @@ export function parseSquare(text: string): Square {
 export type LessonGoal =
   | { type: 'move'; from: string; to: string[] }
   | { type: 'capture'; piece?: PieceKind }
-  | { type: 'drop'; piece?: HandKind }
+  | { type: 'drop'; piece?: HandKind; to?: string[] }
   | { type: 'promote' }
   | { type: 'check' }
   | { type: 'mate' }
@@ -50,7 +50,11 @@ export function goalSatisfied(goal: LessonGoal, before: Position, move: Move): b
       return captured !== null && (!goal.piece || captured.kind === goal.piece)
     }
     case 'drop':
-      return move.type === 'drop' && (!goal.piece || move.piece === goal.piece)
+      return (
+        move.type === 'drop' &&
+        (!goal.piece || move.piece === goal.piece) &&
+        (!goal.to || goal.to.some((to) => sameSquare(move.to, parseSquare(to))))
+      )
     case 'promote':
       return move.type === 'move' && move.promote
     case 'check':
@@ -334,6 +338,98 @@ export const LESSONS: Lesson[] = [
         goal: { type: 'move', from: '2h', to: ['2d'] },
         hint: 'La torre de 2八 sube por la columna, que ahora está libre.',
         success: 'Intercambio de peones completado: los dos tenéis un peón en la mano, pero tu torre está activa.',
+      },
+    ],
+  },
+  {
+    id: 'defense',
+    title: 'Defender al rey',
+    kanji: '守',
+    summary: 'Salir del jaque capturando o tapando.',
+    steps: [
+      {
+        instruction:
+          'La torre roja de 5五 da jaque a tu rey. A veces lo mejor no es huir: captúrala con el oro de 6六.',
+        sfen: '4k4/9/9/9/4r4/3G5/9/9/4K4 b - 1',
+        goal: { type: 'capture', piece: 'rook' },
+        hint: 'El oro puede avanzar en diagonal hacia delante: de 6六 a 5五.',
+        success: '¡Capturada! Quitar la pieza que da jaque es a menudo la mejor defensa (y ganas una torre).',
+      },
+      {
+        instruction:
+          'Ahora la lanza de 5二 da jaque desde lejos. Tapa el jaque colocando el oro de tu mano entre la lanza y tu rey.',
+        sfen: '8k/4l4/9/9/9/9/9/9/4K4 b G 1',
+        goal: { type: 'drop', piece: 'gold' },
+        hint: 'Cualquier casilla vacía de la columna 5 entre 5三 y 5八 sirve.',
+        success: 'Jaque tapado. Las piezas de la mano también sirven para defender.',
+      },
+    ],
+  },
+  {
+    id: 'promoted-pieces',
+    title: 'Las piezas promocionadas',
+    kanji: '龍',
+    summary: 'Alfil y torre promocionados.',
+    steps: [
+      {
+        instruction: 'Lleva el alfil de 5五 a la zona de promoción (filas 一 a 三) y promociónalo a caballo dragón (馬).',
+        sfen: '4k4/9/9/9/4B4/9/9/9/4K4 b - 1',
+        goal: { type: 'promote' },
+        hint: 'Muévelo en diagonal hacia arriba, por ejemplo a 3三 o a 7三, y elige "Promocionar".',
+        success: 'El caballo dragón conserva las diagonales y gana un paso en recto.',
+      },
+      {
+        instruction: 'Este caballo dragón puede dar un paso en recto, algo que el alfil no puede. Muévelo una casilla hacia delante, hacia atrás o a un lado.',
+        sfen: '4k4/9/9/9/4+B4/9/9/9/4K4 b - 1',
+        goal: { type: 'move', from: '5e', to: ['5d', '5f', '4e', '6e'] },
+        hint: 'Las casillas pegadas a 5五 en vertical u horizontal.',
+        success: 'Exacto: el caballo dragón (馬) es mucho más flexible que el alfil.',
+      },
+      {
+        instruction: 'El dragón (龍) es la torre promocionada: además de sus líneas, da un paso en diagonal. Muévelo una casilla en diagonal.',
+        sfen: '4k4/9/9/9/4+R4/9/9/9/4K4 b - 1',
+        goal: { type: 'move', from: '5e', to: ['4d', '6d', '4f', '6f'] },
+        hint: 'Las cuatro casillas pegadas en diagonal a 5五.',
+        success: '¡Muy bien! El dragón es la pieza más poderosa del shōgi.',
+      },
+    ],
+  },
+  {
+    id: 'fork',
+    title: 'El ataque doble',
+    kanji: '両',
+    summary: 'Atacar dos piezas a la vez.',
+    steps: [
+      {
+        instruction:
+          'El oro de 6三 y la plata de 4三 están desprotegidos. Coloca el caballo de tu mano en 5五: atacará a los dos a la vez (両取り).',
+        sfen: '4k4/9/3g1s3/9/9/9/9/9/4K4 b N 1',
+        goal: { type: 'drop', piece: 'knight', to: ['5e'] },
+        hint: 'El caballo salta dos filas hacia delante y una a cada lado: desde 5五 llega a 6三 y a 4三.',
+        success: '¡Ataque doble! El rival solo puede salvar una de las dos piezas.',
+      },
+      {
+        instruction: 'El rival ha salvado el oro llevándolo a 6四. Captura la plata con el caballo.',
+        sfen: '4k4/9/5s3/3g5/4N4/9/9/9/4K4 b - 1',
+        goal: { type: 'capture', piece: 'silver' },
+        hint: 'El caballo de 5五 salta a 4三.',
+        success: 'Pieza ganada. Los ataques dobles son una de las tácticas más importantes.',
+      },
+    ],
+  },
+  {
+    id: 'back-rank',
+    title: 'Mate con la torre',
+    kanji: '飛',
+    summary: 'El mate en la última fila.',
+    steps: [
+      {
+        instruction:
+          'Los propios peones del rey le tapan la huida. Da jaque mate colocando la torre de tu mano en la primera fila (一).',
+        sfen: '4k4/3ppp3/9/9/9/9/9/9/4K4 b R 1',
+        goal: { type: 'mate' },
+        hint: 'Colócala lejos del rey, en 7一, 8一 o 9一: pegada a él la capturaría.',
+        success: '¡Mate! La torre controla toda la fila y el rey no tiene adónde ir.',
       },
     ],
   },

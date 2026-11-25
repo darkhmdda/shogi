@@ -13,7 +13,7 @@ Crear una aplicación que permita a principiantes aprender las reglas del shōgi
 - Partidas contra la máquina (tres niveles) o entre dos personas, con todas
   las reglas: promoción, colocaciones, nifu, uchifuzume, jaque mate,
   sennichite, jaque perpetuo e impasse (jishōgi, regla de 27 puntos).
-- Doce lecciones guiadas (de las reglas básicas a aperturas, castillos y ataque) con objetivos que comprueba el motor.
+- Dieciséis lecciones guiadas (de las reglas básicas a aperturas, castillos, defensa, ataques dobles y mates) con objetivos que comprueba el motor.
 - Veinte problemas de mate (tsume) en 1, 3 y 5 jugadas, verificados por un
   solucionador propio.
 - Guía de piezas, explicaciones de jugadas ilegales, pistas de la máquina.

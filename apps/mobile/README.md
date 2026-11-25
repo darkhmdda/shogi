@@ -7,7 +7,7 @@ web, así que las reglas, la IA, las lecciones y los problemas son idénticos.
 ## Pantallas
 
 - **Inicio:** progreso y guía de piezas.
-- **Aprender:** las 12 lecciones guiadas.
+- **Aprender:** las 16 lecciones guiadas.
 - **Problemas:** los 20 tsume (mate en 1, 3 y 5).
 - **Jugar:** partida contra la máquina (3 niveles), deshacer, guardado automático.
 - **En línea** (con servidor): crear o unirse a partidas con código; se puede

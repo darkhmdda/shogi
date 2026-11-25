@@ -38,7 +38,7 @@ const features = [
   {
     number: '01',
     title: 'Aprende a jugar',
-    description: 'Doce lecciones interactivas: de mover tu primer peón a construir un castillo y atacar.',
+    description: 'Dieciséis lecciones interactivas: de mover tu primer peón a defender, atacar y dar mate.',
     icon: '駒',
     action: 'Empezar las lecciones',
     href: '#aprender',

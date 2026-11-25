@@ -23,7 +23,7 @@ test('se completa la primera lección', async ({ page }) => {
   await lessons.getByRole('button', { name: 'Siguiente paso' }).click()
   await square(lessons, '5五').click()
   await square(lessons, '5四').click()
-  await expect(lessons.locator('.training-progress')).toContainText('1 de 12')
+  await expect(lessons.locator('.training-progress')).toContainText('1 de 16')
 })
 
 test('una jugada que no cumple el objetivo se explica', async ({ page }) => {
