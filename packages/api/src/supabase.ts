@@ -52,7 +52,8 @@ export function translateAuthError(message: string): string {
     return 'Demasiados intentos. Espera unos minutos y vuelve a probar.'
   if (text.includes('unable to validate email') || text.includes('invalid email'))
     return 'El correo no es válido.'
-  if (text.includes('failed to fetch') || text.includes('network')) return 'No se pudo conectar con el servidor.'
+  if (text.includes('failed to fetch') || text.includes('fetch failed') || text.includes('network'))
+    return 'No se pudo conectar con el servidor.'
   return message
 }
 
