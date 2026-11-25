@@ -6,7 +6,7 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { getOnlineProvider, useAccount } from '../account'
 import { Board, PromotionPanel } from '../components/Board'
 import { Button, Card, Feedback, Row } from '../components/ui'
-import { colors, spacing } from '../theme'
+import {type Colors, spacing, useColors, useStyles} from '../theme'
 
 const emptyPosition: Position = { board: emptyBoard(), hands: emptyHands(), turn: 'sente' }
 
@@ -26,6 +26,7 @@ function resultText(state: OnlineState): string {
 }
 
 export function OnlineScreen({ onNeedAccount }: { onNeedAccount: () => void }) {
+  const styles = useStyles(createStyles)
   const account = useAccount()
   const provider = account ? getOnlineProvider() : null
   const [code, setCode] = useState<string | null>(null)
@@ -181,14 +182,15 @@ export function OnlineScreen({ onNeedAccount }: { onNeedAccount: () => void }) {
   )
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
   container: { padding: spacing.lg, gap: spacing.md },
   title: { fontSize: 18, fontWeight: '700', color: colors.text },
   body: { color: colors.text, lineHeight: 21 },
   muted: { color: colors.muted, lineHeight: 20 },
   input: {
     borderWidth: 1,
-    borderColor: '#cdbb9a',
+    borderColor: colors.inputBorder,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,

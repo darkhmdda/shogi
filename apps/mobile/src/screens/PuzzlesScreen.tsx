@@ -17,7 +17,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Board, PromotionPanel } from '../components/Board'
 import { Button, Card, Feedback, Row } from '../components/ui'
 import { completePuzzle, useProgress } from '../progress'
-import { colors, spacing } from '../theme'
+import {type Colors, spacing, useColors, useStyles} from '../theme'
 
 type Status = 'playing' | 'waiting' | 'solved' | 'failed'
 
@@ -26,6 +26,7 @@ type State = { id: string; position: Position; played: number; lastMove?: Move; 
 const start = (tsume: Tsume): State => ({ id: tsume.id, position: tsumePosition(tsume), played: 0, status: 'playing', moves: [] })
 
 export function PuzzlesScreen() {
+  const styles = useStyles(createStyles)
   const progress = useProgress()
   const [state, setState] = useState<State>(() => start(TSUME.find((t) => !progress.puzzles[t.id]) ?? TSUME[0]))
   const [message, setMessage] = useState<string | null>(null)
@@ -164,7 +165,8 @@ export function PuzzlesScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
   container: { padding: spacing.lg, gap: spacing.md },
   progress: { color: colors.muted },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
@@ -175,12 +177,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#cdbb9a',
+    borderColor: colors.inputBorder,
     backgroundColor: colors.surface,
   },
-  chipDone: { borderColor: colors.hint, backgroundColor: colors.successBg },
+  chipDone: { borderColor: colors.successBorder, backgroundColor: colors.successBg },
   chipActive: { borderColor: colors.accent, borderWidth: 2 },
-  chipText: { fontWeight: '700', color: colors.pieceText },
+  chipText: { fontWeight: '700', color: colors.text },
   kicker: { color: colors.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
   title: { fontSize: 18, fontWeight: '700', color: colors.text },
   body: { color: colors.text, lineHeight: 20 },

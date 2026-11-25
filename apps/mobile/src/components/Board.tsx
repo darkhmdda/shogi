@@ -20,7 +20,7 @@ import {
 } from '@shogi/engine'
 import type { PendingPromotion, Selection } from '@shogi/react'
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
-import { colors, spacing } from '../theme'
+import {type Colors, spacing, useColors, useStyles} from '../theme'
 import { Button, Card, Row } from './ui'
 
 const INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8]
@@ -54,6 +54,8 @@ export function Board({
   handLabel,
   flipped = false,
 }: Props) {
+  const colors = useColors()
+  const styles = useStyles(createStyles)
   const rows = flipped ? [...INDICES].reverse() : INDICES
   const cols = flipped ? [...INDICES].reverse() : INDICES
   const { width } = useWindowDimensions()
@@ -144,9 +146,9 @@ export function Board({
                         last && { backgroundColor: colors.lastMove },
                         inCheck && { backgroundColor: colors.check },
                         selected && {
-                          backgroundColor: position.turn === 'sente' ? '#bfdbfe' : '#fecaca',
+                          backgroundColor: position.turn === 'sente' ? colors.selectedSente : colors.selectedGote,
                         },
-                        isPending && { borderColor: '#7c3aed', borderWidth: 2 },
+                        isPending && { borderColor: colors.pending, borderWidth: 2 },
                       ]}
                     >
                       {piece && (
@@ -198,12 +200,14 @@ export function PromotionPanel({
   pending: PendingPromotion
   onChoose: (promote: boolean) => void
 }) {
+  const colors = useColors()
+  const styles = useStyles(createStyles)
   const piece = position.board[pending.from.row][pending.from.col]
   if (!piece) return null
   const promoted = { ...piece, promoted: true }
 
   return (
-    <Card style={{ borderColor: '#7c3aed' }}>
+    <Card style={{ borderColor: colors.pending }}>
       <Text style={styles.title}>
         Promoción: {pieceKanji(piece)} → <Text style={{ color: colors.promoted }}>{pieceKanji(promoted)}</Text>
       </Text>
@@ -218,7 +222,8 @@ export function PromotionPanel({
   )
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
   wrapper: { gap: spacing.sm, alignItems: 'center' },
   hand: {
     alignSelf: 'stretch',
@@ -231,7 +236,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderLeftWidth: 4,
     borderColor: colors.border,
-    backgroundColor: '#fffaf0',
+    backgroundColor: colors.handBg,
   },
   handLabel: { fontWeight: '700', color: colors.text, marginRight: 4 },
   handPiece: {
@@ -243,16 +248,16 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderWidth: 1,
     borderColor: colors.woodLine,
-    backgroundColor: '#f0d9b5',
+    backgroundColor: colors.handPiece,
   },
-  handSelected: { backgroundColor: '#bfdbfe', borderColor: colors.sente, borderWidth: 2 },
+  handSelected: { backgroundColor: colors.selectedSente, borderColor: colors.sente, borderWidth: 2 },
   handDisabled: { opacity: 0.6 },
-  handKanji: { fontSize: 20, color: '#222' },
-  handCount: { fontSize: 12, color: '#222' },
+  handKanji: { fontSize: 20, color: colors.handPieceText },
+  handCount: { fontSize: 12, color: colors.handPieceText },
   muted: { color: colors.muted },
   fileRow: { flexDirection: 'row' },
   boardRow: { flexDirection: 'row' },
-  coord: { textAlign: 'center', fontSize: 11, color: '#55442f', fontWeight: '600' },
+  coord: { textAlign: 'center', fontSize: 11, color: colors.coordinates, fontWeight: '600' },
   rankCoord: { width: 18 },
   grid: { borderTopWidth: 1, borderLeftWidth: 1, borderColor: colors.woodLine, backgroundColor: colors.wood },
   row: { flexDirection: 'row' },
@@ -270,7 +275,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
     backgroundColor: colors.piece,
-    shadowColor: '#47351f',
+    shadowColor: colors.shadow,
     shadowOpacity: 0.2,
     shadowRadius: 1,
     shadowOffset: { width: 1, height: 1 },
@@ -278,7 +283,7 @@ const styles = StyleSheet.create({
   },
   upsideDown: { transform: [{ rotate: '180deg' }] },
   pieceText: { color: colors.pieceText, fontWeight: '500' },
-  moveHint: { position: 'absolute', backgroundColor: 'rgba(47,107,58,0.6)' },
+  moveHint: { position: 'absolute', backgroundColor: colors.hint },
   captureHint: {
     position: 'absolute',
     top: 2,
@@ -286,7 +291,7 @@ const styles = StyleSheet.create({
     right: 2,
     bottom: 2,
     borderWidth: 3,
-    borderColor: 'rgba(47,107,58,0.8)',
+    borderColor: colors.hintRing,
   },
   title: { fontSize: 16, fontWeight: '700', color: colors.text },
   body: { color: colors.text, lineHeight: 20 },

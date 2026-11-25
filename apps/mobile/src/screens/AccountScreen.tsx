@@ -16,7 +16,7 @@ import {
 } from '../account'
 import { Button, Card, Feedback, Row } from '../components/ui'
 import { useProgress } from '../progress'
-import { colors, spacing } from '../theme'
+import {type Colors, spacing, useColors, useStyles} from '../theme'
 
 const REASONS: Record<string, string> = {
   checkmate: 'jaque mate',
@@ -35,6 +35,7 @@ function Field(props: {
   email?: boolean
   autoComplete?: 'email' | 'password' | 'new-password' | 'current-password' | 'nickname' | 'username'
 }) {
+  const styles = useStyles(createStyles)
   return (
     <>
       <Text style={styles.label}>{props.label}</Text>
@@ -54,6 +55,7 @@ function Field(props: {
 }
 
 function Link({ title, onPress, disabled }: { title: string; onPress: () => void; disabled?: boolean }) {
+  const styles = useStyles(createStyles)
   return (
     <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" hitSlop={8}>
       <Text style={[styles.link, disabled && { opacity: 0.5 }]}>{title}</Text>
@@ -62,6 +64,7 @@ function Link({ title, onPress, disabled }: { title: string; onPress: () => void
 }
 
 export function AccountScreen() {
+  const styles = useStyles(createStyles)
   const account = useAccount()
   const gamesVersion = useGamesVersion()
   const progress = useProgress()
@@ -269,7 +272,8 @@ export function AccountScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
   container: { padding: spacing.lg, gap: spacing.md },
   title: { fontSize: 18, fontWeight: '700', color: colors.text },
   body: { color: colors.text, lineHeight: 20 },
@@ -277,7 +281,7 @@ const styles = StyleSheet.create({
   label: { fontWeight: '700', color: colors.text },
   input: {
     borderWidth: 1,
-    borderColor: '#cdbb9a',
+    borderColor: colors.inputBorder,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,

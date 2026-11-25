@@ -10,7 +10,7 @@ import { HomeScreen } from './src/screens/HomeScreen'
 import { LessonsScreen } from './src/screens/LessonsScreen'
 import { PlayScreen } from './src/screens/PlayScreen'
 import { PuzzlesScreen } from './src/screens/PuzzlesScreen'
-import { colors } from './src/theme'
+import { loadTheme, type Colors, useColors, useIsDark, useStyles } from './src/theme'
 
 type Tab = 'home' | 'lessons' | 'puzzles' | 'play' | 'online' | 'account'
 
@@ -28,16 +28,20 @@ const TABS: { id: Tab; icon: string; label: string }[] = [
 ]
 
 export default function App() {
+  const colors = useColors()
+  const isDark = useIsDark()
+  const styles = useStyles(createStyles)
   const [tab, setTab] = useState<Tab>('home')
 
   useEffect(() => {
+    loadTheme()
     loadProgress().then(loadAccount)
   }, [])
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-        <StatusBar style="dark" />
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <View style={styles.header}>
           <View style={styles.brandMark}>
             <Text style={styles.brandKanji}>将</Text>
@@ -80,7 +84,8 @@ export default function App() {
   )
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
@@ -92,7 +97,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   brandMark: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accent },
-  brandKanji: { color: 'white', fontSize: 20 },
+  brandKanji: { color: colors.onAccent, fontSize: 20 },
   brand: { fontSize: 22, fontWeight: '700', color: colors.text },
   content: { flex: 1 },
   tabBarSafe: { backgroundColor: colors.surface },

@@ -2,9 +2,15 @@ import { JAPANESE_NAMES, LESSONS, PIECE_KANJI, pieceMovement, pieceName, TSUME, 
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Button, Card, Row } from '../components/ui'
 import { resetProgress, useProgress } from '../progress'
-import { colors, spacing } from '../theme'
+import { setTheme, spacing, type Colors, type ThemeChoice, useColors, useStyles, useThemeChoice } from '../theme'
 
 const KINDS: PieceKind[] = ['king', 'rook', 'bishop', 'gold', 'silver', 'knight', 'lance', 'pawn']
+
+const THEMES: { value: ThemeChoice; label: string }[] = [
+  { value: 'auto', label: '◐ Automático' },
+  { value: 'light', label: '☀ Claro' },
+  { value: 'dark', label: '☾ Oscuro' },
+]
 
 /** Solo la primera letra en mayúscula (textTransform pondría todas las palabras). */
 function capitalize(text: string): string {
@@ -12,6 +18,8 @@ function capitalize(text: string): string {
 }
 
 export function HomeScreen({ onNavigate }: { onNavigate: (tab: 'lessons' | 'puzzles' | 'play') => void }) {
+  const styles = useStyles(createStyles)
+  const theme = useThemeChoice()
   const progress = useProgress()
   const lessons = Object.keys(progress.lessons).length
   const puzzles = Object.keys(progress.puzzles).length
@@ -63,12 +71,25 @@ export function HomeScreen({ onNavigate }: { onNavigate: (tab: 'lessons' | 'puzz
         </Card>
       ))}
 
+      <Text style={styles.section}>Apariencia</Text>
+      <Row>
+        {THEMES.map((option) => (
+          <Button
+            key={option.value}
+            title={option.label}
+            variant={theme === option.value ? 'primary' : 'secondary'}
+            onPress={() => setTheme(option.value)}
+          />
+        ))}
+      </Row>
+
       <Button title="Reiniciar progreso" onPress={resetProgress} />
     </ScrollView>
   )
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
   container: { padding: spacing.lg, gap: spacing.md },
   eyebrow: { color: colors.accent, fontSize: 12, fontWeight: '700', letterSpacing: 1.5 },
   hero: { fontSize: 32, lineHeight: 38, color: colors.text, fontFamily: 'serif' },

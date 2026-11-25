@@ -26,7 +26,7 @@ import { Board, PromotionPanel } from '../components/Board'
 import { Button, Card, Feedback, Row } from '../components/ui'
 import { uploadGame } from '../account'
 import { recordGame } from '../progress'
-import { colors, spacing } from '../theme'
+import {type Colors, spacing, useColors, useStyles} from '../theme'
 
 const STORAGE_KEY = 'shogi.mobile.game.v1'
 
@@ -58,6 +58,7 @@ function resultText(result: GameResult): string {
 }
 
 export function PlayScreen() {
+  const styles = useStyles(createStyles)
   const [game, setGame] = useState<GameState>(() => newGame())
   const [humanSide, setHumanSide] = useState<Owner>('sente')
   const [difficulty, setDifficulty] = useState<Difficulty>('normal')
@@ -235,7 +236,8 @@ export function PlayScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
   container: { padding: spacing.lg, gap: spacing.md },
   status: {
     padding: 10,

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native'
-import { colors, spacing } from '../theme'
+import {type Colors, spacing, useColors, useStyles} from '../theme'
 
 type ButtonProps = {
   title: string
@@ -10,6 +10,7 @@ type ButtonProps = {
 }
 
 export function Button({ title, onPress, variant = 'secondary', disabled }: ButtonProps) {
+  const styles = useStyles(createStyles)
   return (
     <Pressable
       accessibilityRole="button"
@@ -29,14 +30,17 @@ export function Button({ title, onPress, variant = 'secondary', disabled }: Butt
 }
 
 export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  const styles = useStyles(createStyles)
   return <View style={[styles.card, style]}>{children}</View>
 }
 
 export function Row({ children }: { children: ReactNode }) {
+  const styles = useStyles(createStyles)
   return <View style={styles.row}>{children}</View>
 }
 
 export function Feedback({ text, tone = 'neutral' }: { text: string; tone?: 'neutral' | 'success' | 'error' }) {
+  const styles = useStyles(createStyles)
   return (
     <Text
       accessibilityLiveRegion="polite"
@@ -47,20 +51,21 @@ export function Feedback({ text, tone = 'neutral' }: { text: string; tone?: 'neu
   )
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
   button: {
     paddingVertical: 9,
     paddingHorizontal: 14,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#b9ad98',
-    backgroundColor: '#f5efe4',
+    borderColor: colors.buttonBorder,
+    backgroundColor: colors.button,
   },
-  primary: { backgroundColor: colors.sente, borderColor: '#2459a9' },
+  primary: { backgroundColor: colors.primary, borderColor: colors.primaryBorder },
   disabled: { opacity: 0.5 },
   pressed: { opacity: 0.8 },
-  buttonText: { color: colors.pieceText, fontSize: 14, fontWeight: '600' },
-  primaryText: { color: 'white' },
+  buttonText: { color: colors.buttonText, fontSize: 14, fontWeight: '600' },
+  primaryText: { color: colors.onPrimary },
   card: {
     padding: spacing.md,
     borderRadius: 10,
@@ -70,7 +75,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  feedback: { padding: 10, borderRadius: 8, backgroundColor: '#f5efe4', color: colors.text, lineHeight: 20 },
+  feedback: { padding: 10, borderRadius: 8, backgroundColor: colors.surfaceAlt, color: colors.text, lineHeight: 20 },
   success: { backgroundColor: colors.successBg, color: colors.success },
   error: { backgroundColor: colors.errorBg, color: colors.error },
 })

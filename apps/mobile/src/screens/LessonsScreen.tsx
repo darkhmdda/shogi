@@ -5,7 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text } from 'react-native'
 import { Board, PromotionPanel } from '../components/Board'
 import { Button, Card, Feedback, Row } from '../components/ui'
 import { completeLesson, useProgress } from '../progress'
-import { colors, spacing } from '../theme'
+import {type Colors, spacing, useColors, useStyles} from '../theme'
 
 type State = { lessonId: string; step: number; position: Position; lastMove?: Move; done: boolean }
 
@@ -17,6 +17,7 @@ const startStep = (lesson: Lesson, step: number): State => ({
 })
 
 export function LessonsScreen() {
+  const styles = useStyles(createStyles)
   const progress = useProgress()
   const [state, setState] = useState<State>(() => startStep(LESSONS.find((l) => !progress.lessons[l.id]) ?? LESSONS[0], 0))
   const [message, setMessage] = useState<string | null>(null)
@@ -104,7 +105,8 @@ export function LessonsScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
   container: { padding: spacing.lg, gap: spacing.md },
   list: { gap: spacing.sm },
   item: {
@@ -119,7 +121,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   itemActive: { borderColor: colors.accent, borderWidth: 2 },
-  kanji: { fontSize: 18, color: colors.pieceText },
+  kanji: { fontSize: 18, color: colors.text },
   itemText: { color: colors.text, fontWeight: '600' },
   kicker: { color: colors.accent, fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
   title: { fontSize: 18, fontWeight: '700', color: colors.text },
