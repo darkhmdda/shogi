@@ -40,3 +40,13 @@ escribir lo suyo. Los nombres de usuario son visibles para otros usuarios
 registrados (hacen falta para el juego en línea). El progreso solo se modifica
 a través de `merge_progress`, que nunca borra avances. La clave secreta
 (`service_role` / `sb_secret_…`) no se usa en la app y no debe publicarse.
+
+## Evitar la pausa por inactividad
+
+El plan gratuito pausa el proyecto tras una semana sin actividad. El workflow
+[`supabase-keepalive.yml`](../.github/workflows/supabase-keepalive.yml) hace
+una consulta pequeña cada tres días (y se puede lanzar a mano desde *Actions*).
+
+Aviso: GitHub desactiva los workflows programados de un repositorio que pasa
+60 días sin ningún commit. Te avisa por correo antes; basta con volver a
+activarlo en *Actions* o hacer cualquier commit.

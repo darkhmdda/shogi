@@ -1,0 +1,33 @@
+name: Mantener Supabase activo
+
+# El plan gratuito de Supabase pausa los proyectos sin actividad durante una
+# semana. Este workflow hace una consulta pequeña a la base de datos cada tres
+# días para que eso no ocurra aunque nadie use la app.
+on:
+  schedule:
+    - cron: '23 7 */3 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://jmojorddnjgxqjnpkvcs.supabase.co' }}
+      SUPABASE_KEY: ${{ vars.VITE_SUPABASE_KEY || 'sb_publishable_O5sUEAooXq6wNq9Powzbmg_JzWdMHNY' }}
+    steps:
+      - name: Consulta a la base de datos
+        run: |
+          # username_available ejecuta una consulta real en PostgreSQL (cuenta como actividad)
+          # y no necesita sesión ni modifica nada.
+          for intento in 1 2 3; do
+            respuesta=$(curl -fsS -m 30 -X POST "$SUPABASE_URL/rest/v1/rpc/username_available" \
+              -H "apikey: $SUPABASE_KEY" -H "Content-Type: application/json" \
+              -d '{"name":"comprobacion-automatica"}') && break
+            echo "Intento $intento fallido; reintentando en 30 s…"
+            sleep 30
+          done
+          echo "Respuesta de Supabase: $respuesta"
+          test -n "$respuesta"
