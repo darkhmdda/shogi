@@ -8,6 +8,7 @@ import {
   generateLegalMoves,
   HAND_ORDER,
   isInCheck,
+  isSquareAttacked,
   legalMovesFrom,
   movesEqual,
   otherOwner,
@@ -127,7 +128,33 @@ export function evaluate(position: Position, owner: Owner): number {
     score -= position.hands[opponent][kind] * HAND_VALUE[kind]
   }
 
+  score -= kingDanger(position, owner, kings[owner])
+  score += kingDanger(position, opponent, kings[opponent])
+
   return score
+}
+
+/**
+ * Peligro para el rey de `owner`: casillas a su alrededor controladas por el
+ * rival (cuantas más, menos huidas y más amenazas de mate). Pesa más si el
+ * rival tiene piezas en la mano, porque puede colocarlas junto al rey.
+ */
+function kingDanger(position: Position, owner: Owner, king: Square | null): number {
+  if (!king) return 0
+  const enemy = otherOwner(owner)
+  let attacked = 0
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      if (dr === 0 && dc === 0) continue
+      const row = king.row + dr
+      const col = king.col + dc
+      if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) continue
+      if (isSquareAttacked(position.board, { row, col }, enemy)) attacked++
+    }
+  }
+  let inHand = 0
+  for (const kind of HAND_ORDER) inHand += position.hands[enemy][kind]
+  return attacked * (14 + Math.min(inHand, 6) * 4)
 }
 
 // ---------------------------------------------------------------------------
@@ -189,6 +216,18 @@ type SearchContext = {
   nodes: number
   table: Map<string, TTEntry>
   killers: Move[][]
+  /** Heurística de historia: jugadas tranquilas que provocaron cortes. */
+  history: Map<string, number>
+}
+
+function moveKey(move: Move): string {
+  return move.type === 'drop'
+    ? `${move.piece}*${move.to.row}${move.to.col}`
+    : `${move.from.row}${move.from.col}${move.to.row}${move.to.col}${move.promote ? '+' : ''}`
+}
+
+function isQuietMove(position: Position, move: Move): boolean {
+  return move.type === 'drop' || (!move.promote && position.board[move.to.row][move.to.col] === null)
 }
 
 function moveScore(position: Position, move: Move, ctx: SearchContext, ply: number, ttMove: Move | null): number {
@@ -204,12 +243,13 @@ function moveScore(position: Position, move: Move, ctx: SearchContext, ply: numb
     }
     if (move.promote) score += 50_000
     if (ctx.killers[ply]?.some((killer) => movesEqual(killer, move))) score += 40_000
+    if (score === 0) score = Math.min(ctx.history.get(moveKey(move)) ?? 0, 30_000)
     return score
   }
 
   if (ctx.killers[ply]?.some((killer) => movesEqual(killer, move))) return 40_000
-  // Las colocaciones se exploran al final, las de piezas valiosas antes.
-  return -10_000 + PIECE_VALUE[move.piece] / 10
+  // Las colocaciones se exploran al final, las que más cortes dieron antes.
+  return -10_000 + Math.min(ctx.history.get(moveKey(move)) ?? 0, 9_000) + PIECE_VALUE[move.piece] / 10
 }
 
 function orderMoves(position: Position, moves: Move[], ctx: SearchContext, ply: number, ttMove: Move | null): Move[] {
@@ -272,6 +312,20 @@ function quiescence(position: Position, alpha: number, beta: number, ctx: Search
   return alpha
 }
 
+/** ¿Tiene el bando piezas además de peones? (el movimiento nulo es arriesgado si no). */
+function hasMaterial(position: Position): boolean {
+  const owner = position.turn
+  for (const kind of HAND_ORDER) {
+    if (kind !== 'pawn' && position.hands[owner][kind] > 0) return true
+  }
+  for (const row of position.board) {
+    for (const piece of row) {
+      if (piece && piece.owner === owner && piece.kind !== 'king' && piece.kind !== 'pawn') return true
+    }
+  }
+  return false
+}
+
 function negamax(
   position: Position,
   depth: number,
@@ -279,12 +333,13 @@ function negamax(
   beta: number,
   ctx: SearchContext,
   ply: number,
+  allowNull = true,
 ): number {
   checkTime(ctx)
 
   const inCheck = isInCheck(position.board, position.turn)
   // Extensión de jaque: ayuda a ver mates forzados.
-  if (inCheck && ply < 10) depth++
+  if (inCheck && ply < 12) depth++
 
   if (depth <= 0) return quiescence(position, alpha, beta, ctx, ply, 6)
 
@@ -298,14 +353,48 @@ function negamax(
     if (entry.flag === 'upper' && entry.score <= alpha) return entry.score
   }
 
+  // Movimiento nulo: si pasando el turno la posición sigue siendo demasiado
+  // buena para el rival, no merece la pena explorarla a fondo.
+  if (allowNull && !inCheck && depth >= 3 && ply > 0 && Math.abs(beta) < MATE_THRESHOLD && hasMaterial(position)) {
+    if (evaluate(position, position.turn) >= beta) {
+      const passed: Position = { ...position, turn: otherOwner(position.turn) }
+      const reduction = depth >= 6 ? 3 : 2
+      const score = -negamax(passed, depth - 1 - reduction, -beta, -beta + 1, ctx, ply + 1, false)
+      if (score >= beta) return beta
+    }
+  }
+
   const moves = generateLegalMoves(position)
   if (moves.length === 0) return -MATE_SCORE + ply
 
   let best = -Infinity
   let bestMove: Move | null = null
+  let index = 0
 
   for (const move of orderMoves(position, moves, ctx, ply, entry?.best ?? null)) {
-    const score = -negamax(applyMove(position, move), depth - 1, -beta, -alpha, ctx, ply + 1)
+    const child = applyMove(position, move)
+    const quiet = isQuietMove(position, move)
+    let score: number
+
+    if (index === 0) {
+      score = -negamax(child, depth - 1, -beta, -alpha, ctx, ply + 1)
+    } else {
+      // Reducción de jugadas tardías: las tranquilas que se ordenaron al final
+      // se miran con menos profundidad; si sorprenden, se vuelven a mirar enteras.
+      let reduction = 0
+      if (quiet && !inCheck && depth >= 3 && index >= 3 && !isInCheck(child.board, child.turn)) {
+        reduction = index >= 8 ? 2 : 1
+      }
+      // Búsqueda con ventana nula (PVS).
+      score = -negamax(child, depth - 1 - reduction, -alpha - 1, -alpha, ctx, ply + 1)
+      if (score > alpha && reduction > 0) {
+        score = -negamax(child, depth - 1, -alpha - 1, -alpha, ctx, ply + 1)
+      }
+      if (score > alpha && score < beta) {
+        score = -negamax(child, depth - 1, -beta, -alpha, ctx, ply + 1)
+      }
+    }
+    index++
 
     if (score > best) {
       best = score
@@ -313,10 +402,11 @@ function negamax(
     }
     if (best > alpha) alpha = best
     if (alpha >= beta) {
-      const isQuiet = move.type === 'drop' || position.board[move.to.row][move.to.col] === null
-      if (isQuiet) {
+      if (quiet) {
         const killers = ctx.killers[ply] ?? []
         ctx.killers[ply] = [move, ...killers.filter((k) => !movesEqual(k, move))].slice(0, 2)
+        const k = moveKey(move)
+        ctx.history.set(k, (ctx.history.get(k) ?? 0) + depth * depth)
       }
       break
     }
@@ -365,6 +455,7 @@ export function search(
     nodes: 0,
     table: new Map(),
     killers: [],
+    history: new Map(),
   }
 
   let bestMove = moves[0]
