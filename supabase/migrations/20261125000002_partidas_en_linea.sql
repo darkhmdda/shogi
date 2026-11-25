@@ -38,6 +38,9 @@ create policy "Los jugadores ven su partida"
 -- y de la Edge Function (que usa la clave de servicio).
 revoke all on public.online_games from anon, authenticated;
 grant select on public.online_games to authenticated;
+-- La Edge Function usa la clave de servicio (rol service_role). Si el proyecto
+-- no concede permisos automáticamente a las tablas nuevas, hay que dárselos.
+grant select, update on public.online_games to service_role;
 
 -- Tiempo real: los cambios de la tabla se envían a los jugadores conectados.
 do $$
