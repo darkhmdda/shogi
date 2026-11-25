@@ -10,6 +10,13 @@ name: App Android (APK)
 on:
   push:
     tags: ['v*']
+    # Compilación de prueba (sin release) al cambiar la app en las ramas de trabajo.
+    branches: ['claude/**']
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/**'
+      - 'scripts/android-*.mjs'
+      - '.github/workflows/android-apk.yml'
   workflow_dispatch:
 
 permissions:
