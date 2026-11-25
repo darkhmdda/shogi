@@ -4,7 +4,16 @@ from dataclasses import dataclass, field
 
 def _origins() -> list[str]:
     raw = os.getenv("SHOGI_CORS_ORIGINS", "http://localhost:5173,http://localhost:4173")
-    return [origin.strip() for origin in raw.split(",") if origin.strip()]
+    origins = []
+    for origin in raw.split(","):
+        origin = origin.strip().rstrip("/")
+        if not origin:
+            continue
+        # Render entrega solo el nombre del host (shogi-web.onrender.com): se asume HTTPS.
+        if "://" not in origin:
+            origin = f"https://{origin}"
+        origins.append(origin)
+    return origins
 
 
 @dataclass(frozen=True)

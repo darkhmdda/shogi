@@ -1,6 +1,7 @@
 # Despliegue en Render (https://render.com) como "Blueprint".
-# Crea la base de datos, la API y la web con un solo clic desde el panel de Render
-# (New → Blueprint → este repositorio). Revisa los nombres y la región antes de aplicar.
+# En el panel de Render: New → Blueprint → elige este repositorio → Apply.
+# Crea la base de datos, la API y la web, y conecta cada servicio con la
+# dirección real del otro (aunque Render les añada un sufijo al nombre).
 databases:
   - name: shogi-db
     plan: free
@@ -23,8 +24,10 @@ services:
       - key: SHOGI_AUTO_CREATE
         value: "0"
       - key: SHOGI_CORS_ORIGINS
-        # Sustituye por la URL definitiva de la web tras el primer despliegue.
-        value: https://shogi-web.onrender.com
+        fromService:
+          type: web
+          name: shogi-web
+          property: host
 
   - type: web
     name: shogi-web
@@ -33,8 +36,10 @@ services:
     staticPublishPath: ./apps/web/dist
     envVars:
       - key: VITE_API_URL
-        # Sustituye por la URL definitiva de la API tras el primer despliegue.
-        value: https://shogi-api.onrender.com
+        fromService:
+          type: web
+          name: shogi-api
+          property: host
     routes:
       - type: rewrite
         source: /*

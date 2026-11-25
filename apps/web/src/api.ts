@@ -12,8 +12,14 @@ import { getProgress, replaceProgress, subscribe as subscribeProgress } from './
 export { ApiError, type OnlineState, type SavedGame } from '@shogi/api'
 
 /** URL del backend. Si no está configurada, las funciones de cuenta se ocultan. */
-export const API_URL: string | null =
-  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || null
+export const API_URL: string | null = normalizeApiUrl(import.meta.env.VITE_API_URL as string | undefined)
+
+/** Acepta una URL completa o solo el host (como lo entrega Render), que se sirve por HTTPS. */
+function normalizeApiUrl(raw: string | undefined): string | null {
+  const value = raw?.trim().replace(/\/$/, '')
+  if (!value) return null
+  return /^https?:\/\//.test(value) ? value : `https://${value}`
+}
 
 const KEY = 'shogi.account.v1'
 

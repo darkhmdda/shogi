@@ -21,16 +21,25 @@ las actualizaciones del esquema se aplican solas.
 ## En Render (gratis para empezar)
 
 El archivo [`render.yaml`](../render.yaml) describe la base de datos, la API y
-la web. En el panel de Render: **New → Blueprint**, elige este repositorio y
-aplica. Después:
+la web, y conecta cada servicio con la dirección real del otro.
 
-1. Copia la URL real de la web y de la API que te asigne Render.
-2. Actualiza `SHOGI_CORS_ORIGINS` (API) y `VITE_API_URL` (web) con ellas y
-   vuelve a desplegar la web.
-3. Para la app móvil, usa la URL de la API en `EXPO_PUBLIC_API_URL`.
+1. Crea una cuenta en <https://render.com> (puedes entrar con GitHub).
+2. **New → Blueprint** y elige el repositorio `shogi`. Si no aparece, pulsa
+   *Configure account* y da acceso a Render al repositorio.
+3. Render lee `render.yaml` y muestra `shogi-db`, `shogi-api` y `shogi-web`.
+   Pulsa **Apply** (o *Deploy Blueprint*).
+4. Espera a que los tres estén en verde (la API tarda unos minutos la primera
+   vez porque construye la imagen Docker y aplica las migraciones).
+5. Abre la URL de `shogi-web`. Comprueba la API en `https://<url-de-la-api>/health`.
+6. Para la app móvil, usa la URL de la API en `EXPO_PUBLIC_API_URL`.
 
-> No se ha podido probar el despliegue real desde el entorno de desarrollo:
-> revisa los planes, la región y los nombres en el panel antes de aplicarlo.
+Limitaciones habituales del plan gratuito de Render (compruébalas en su web,
+cambian con el tiempo): la API se duerme tras un rato sin uso y la primera
+visita tarda en despertarla, y la base de datos gratuita caduca a las pocas
+semanas salvo que pases a un plan de pago.
+
+Si Render rechaza el Blueprint, copia el mensaje de error: suele bastar con
+ajustar un campo de `render.yaml`.
 
 ## Por piezas (producción)
 

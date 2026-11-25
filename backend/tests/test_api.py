@@ -110,3 +110,10 @@ def test_database_url_normalization():
     assert normalize_url("postgres://u:p@h/db") == "postgresql+psycopg://u:p@h/db"
     assert normalize_url("postgresql://u:p@h/db") == "postgresql+psycopg://u:p@h/db"
     assert normalize_url("sqlite:///x.db") == "sqlite:///x.db"
+
+
+def test_cors_origins_accept_bare_hosts(monkeypatch):
+    from app.config import _origins
+
+    monkeypatch.setenv("SHOGI_CORS_ORIGINS", "shogi-web.onrender.com, http://localhost:5173/")
+    assert _origins() == ["https://shogi-web.onrender.com", "http://localhost:5173"]
