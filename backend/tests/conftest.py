@@ -12,10 +12,12 @@ from fastapi.testclient import TestClient  # noqa: E402
 
 from app.db import Base, engine  # noqa: E402
 from app.main import app  # noqa: E402
+from app.ratelimit import login_limiter  # noqa: E402
 
 
 @pytest.fixture()
 def client():
+    login_limiter._failures.clear()
     if os.getenv("TEST_KEEP_SCHEMA"):
         # Esquema creado con database/schema.sql: solo se vacían las tablas.
         with engine.begin() as connection:

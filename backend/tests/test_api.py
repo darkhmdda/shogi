@@ -102,3 +102,11 @@ def test_rejects_invalid_game_data(client, auth):
     assert bad_sfen.status_code == 422
     bad_move = client.post("/games", json={"sfen": INITIAL, "moves": ["7g7z"]}, headers=auth)
     assert bad_move.status_code == 422
+
+
+def test_database_url_normalization():
+    from app.db import normalize_url
+
+    assert normalize_url("postgres://u:p@h/db") == "postgresql+psycopg://u:p@h/db"
+    assert normalize_url("postgresql://u:p@h/db") == "postgresql+psycopg://u:p@h/db"
+    assert normalize_url("sqlite:///x.db") == "sqlite:///x.db"

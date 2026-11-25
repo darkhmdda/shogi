@@ -20,6 +20,7 @@ Crear una aplicación que permita a principiantes aprender las reglas del shōgi
 - Registro kifu, exportación KIF, importación/exportación SFEN y guardado
   automático de la partida.
 - Progreso local y, con cuenta, sincronizado con el servidor.
+- Instalable como aplicación (PWA) y usable sin conexión.
 
 **Partidas en línea:** dos personas juegan con un código de partida, desde la
 web o desde el móvil (también entre sí); las jugadas llegan en tiempo real y
@@ -74,6 +75,7 @@ Backend y base de datos:
 
 ```bash
 docker compose up --build   # PostgreSQL + API (:8000) + web (:8080)
+# o despliega en Render con render.yaml (ver docs/despliegue.md)
 ```
 
 Para conectar la web con la API, crea `apps/web/.env` con
@@ -86,10 +88,16 @@ PostgreSQL.
 
 ## Estado del proyecto
 
-En desarrollo. Web y app móvil con todas las funciones (aprender, problemas,
-jugar contra la máquina y en línea, cuenta sincronizada); backend y base de
-datos operativos. Pendiente: despliegue público, pruebas en dispositivos
-reales y pulido final.
+Funcionalidad completa. Web (instalable y sin conexión) y app móvil con todas
+las funciones: aprender, problemas, jugar contra la máquina y en línea, cuenta
+sincronizada. Backend y base de datos con migraciones, listos para desplegar
+(`docker compose` o `render.yaml`).
+
+Pendiente, a decidir por el responsable del proyecto:
+
+- Elegir la licencia.
+- Publicar en un hosting (ver [docs/despliegue.md](docs/despliegue.md)).
+- Probar la app móvil en dispositivos reales y publicarla con EAS.
 
 ## Licencia
 

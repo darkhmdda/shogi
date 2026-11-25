@@ -105,6 +105,9 @@ export function createApiClient({ baseUrl, getToken, onUnauthorized, fetch: fetc
     login: (username: string, password: string) =>
       request<Account>('/auth/login', json('POST', { username, password })),
     logout: () => request<void>('/auth/logout', { method: 'POST' }),
+    changePassword: (currentPassword: string, newPassword: string) =>
+      request<Account>('/auth/password', json('POST', { current_password: currentPassword, new_password: newPassword })),
+    deleteAccount: (password: string) => request<void>('/auth/delete', json('POST', { password })),
     me: () => request<{ id: number; username: string; created_at: string }>('/auth/me'),
     getProgress: () => request<Progress>('/progress'),
     /** Envía el progreso local; el servidor devuelve la fusión con lo que ya tenía. */

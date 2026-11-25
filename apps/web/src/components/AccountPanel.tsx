@@ -1,6 +1,16 @@
 import './Training.css'
 import { useEffect, useState, type FormEvent } from 'react'
-import { authenticate, listGames, logout, syncProgress, useAccount, useGamesVersion, type SavedGame } from '../api'
+import {
+  authenticate,
+  changePassword,
+  deleteAccount,
+  listGames,
+  logout,
+  syncProgress,
+  useAccount,
+  useGamesVersion,
+  type SavedGame,
+} from '../api'
 import { useProgress } from '../progress'
 
 const REASONS: Record<string, string> = {
@@ -23,6 +33,9 @@ export default function AccountPanel() {
   const [status, setStatus] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [games, setGames] = useState<SavedGame[] | null>(null)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
     if (!account) return
@@ -124,6 +137,83 @@ export default function AccountPanel() {
         </button>
       </div>
       {status && <p className="training-feedback" role="status">{status}</p>}
+
+      <details className="account-security">
+        <summary>Seguridad de la cuenta</summary>
+        <form
+          className="account-form"
+          onSubmit={async (event) => {
+            event.preventDefault()
+            setBusy(true)
+            try {
+              await changePassword(currentPassword, newPassword)
+              setStatus('Contraseña cambiada. Se han cerrado las demás sesiones.')
+              setCurrentPassword('')
+              setNewPassword('')
+            } catch (error) {
+              setStatus((error as Error).message)
+            } finally {
+              setBusy(false)
+            }
+          }}
+        >
+          <label>
+            Contraseña actual
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(event) => setCurrentPassword(event.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </label>
+          <label>
+            Contraseña nueva (mínimo 8 caracteres)
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              autoComplete="new-password"
+              minLength={8}
+              required
+            />
+          </label>
+          <div className="shogi-buttons">
+            <button type="submit" disabled={busy}>
+              Cambiar contraseña
+            </button>
+          </div>
+
+          <p className="muted">
+            Borrar la cuenta elimina del servidor tu progreso y tus partidas. El progreso guardado en este navegador
+            se conserva.
+          </p>
+          <label className="checkbox-inline">
+            <input type="checkbox" checked={confirmDelete} onChange={(event) => setConfirmDelete(event.target.checked)} />
+            Entiendo que no se puede deshacer
+          </label>
+          <div className="shogi-buttons">
+            <button
+              type="button"
+              className="danger"
+              disabled={busy || !confirmDelete || currentPassword === ''}
+              onClick={async () => {
+                setBusy(true)
+                try {
+                  await deleteAccount(currentPassword)
+                } catch (error) {
+                  setStatus((error as Error).message)
+                } finally {
+                  setBusy(false)
+                }
+              }}
+            >
+              Borrar mi cuenta
+            </button>
+          </div>
+          <p className="muted">Para borrar la cuenta escribe tu contraseña actual arriba.</p>
+        </form>
+      </details>
 
       <h3>Últimas partidas guardadas</h3>
       {games === null ? (

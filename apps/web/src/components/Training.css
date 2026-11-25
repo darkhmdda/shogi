@@ -278,3 +278,26 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+.account-security summary {
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.account-security[open] summary {
+  margin-bottom: 10px;
+}
+
+.checkbox-inline {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500 !important;
+}
+
+.shogi-buttons button.danger,
+.shogi-buttons button.danger:first-child {
+  border-color: #9a3412;
+  background: #fff1ec;
+  color: #9a3412;
+}

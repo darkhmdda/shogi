@@ -66,6 +66,18 @@ export async function authenticate(mode: 'login' | 'register', username: string,
   await syncProgress()
 }
 
+export async function changePassword(current: string, next: string) {
+  if (!client) return
+  setAccount(await client.changePassword(current, next))
+}
+
+/** Borra la cuenta en el servidor. El progreso local del navegador se conserva. */
+export async function deleteAccount(password: string) {
+  if (!client) return
+  await client.deleteAccount(password)
+  setAccount(null)
+}
+
 export async function logout() {
   try {
     await client?.logout()

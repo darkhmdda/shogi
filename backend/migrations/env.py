@@ -6,7 +6,7 @@ from alembic import context
 
 from app import models  # noqa: F401  (registra las tablas en Base.metadata)
 from app.config import settings
-from app.db import Base, engine
+from app.db import Base, engine, normalize_url
 
 config = context.config
 if config.config_file_name is not None:
@@ -16,10 +16,7 @@ target_metadata = Base.metadata
 
 
 def _url() -> str:
-    url = settings.database_url
-    if url.startswith("postgresql://"):
-        url = url.replace("postgresql://", "postgresql+psycopg://", 1)
-    return url
+    return normalize_url(settings.database_url)
 
 
 def run_migrations_offline() -> None:

@@ -90,3 +90,20 @@ test('se resuelve un mate en 5 contra la defensa automática', async ({ page }) 
   const solution = await puzzles.locator('.training-hint', { hasText: 'Solución' }).innerText()
   expect(solution.split(' ').length).toBeGreaterThanOrEqual(6)
 })
+
+test('funciona sin conexión gracias al service worker', async ({ page, context }) => {
+  await page.waitForFunction(() => navigator.serviceWorker.ready.then(() => true))
+  await page.reload()
+  await page.waitForFunction(() => navigator.serviceWorker.controller !== null)
+  await context.setOffline(true)
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Juega y practica' })).toBeVisible()
+  await context.setOffline(false)
+})
+
+test('la página tiene manifiesto e idioma', async ({ page }) => {
+  await expect(page).toHaveTitle(/Shōgi/)
+  expect(await page.locator('html').getAttribute('lang')).toBe('es')
+  const manifest = await page.request.get('/manifest.webmanifest')
+  expect((await manifest.json()).short_name).toBe('Shōgi')
+})

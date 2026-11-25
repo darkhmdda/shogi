@@ -17,6 +17,9 @@
 - Tests de interfaz con Playwright (`apps/web/e2e`, escritorio y móvil).
 - Documentación en `docs/` (arquitectura, despliegue, contribuir).
 - 12 lecciones y 20 tsume (mate en 1, 3 y 5).
+- Seguridad: límite de intentos de login, cambio de contraseña, borrado de cuenta.
+- PWA: manifiesto, iconos propios y service worker (funciona sin conexión).
+- `render.yaml` para desplegar BD + API + web en Render (sin probar en real).
 - `useOnlineGame` en `packages/react`, compartido por web y móvil.
 - Partidas en línea (web y móvil, también entre sí): `backend/app/routers/online.py` + WebSocket; reglas en
   Python (`backend/app/shogi.py`, mismo perft que el motor TS).
@@ -35,11 +38,14 @@ colocaciones, promoción opcional y obligatoria, nifu, piezas sin movimiento,
 uchifuzume, jaque, jaque mate, derrota sin jugadas legales, sennichite
 (tablas) y jaque perpetuo (pierde quien da jaque).
 
-## Pendiente (siguientes pasos sugeridos)
-1. Más contenido (más tsume de 5 y 7, lecciones de finales).
-3. Despliegue público (las imágenes Docker no se pudieron construir en el
-   entorno de desarrollo por límites de red: Docker Hub 429 y sin PyPI en contenedores).
-4. Probar la app móvil en dispositivos reales y publicar con EAS.
+## Pendiente (requiere decisiones o cuentas del responsable)
+1. Elegir licencia (README: "Pendiente de definir").
+2. Desplegar con `render.yaml` o `docker compose` en un servidor propio.
+   Las imágenes Docker no se pudieron construir en el entorno de desarrollo
+   (Docker Hub 429 y sin PyPI dentro de los contenedores).
+3. Probar la app móvil en iOS/Android reales y publicarla con EAS.
+4. Opcional: cambiar contraseña / borrar cuenta también desde la app móvil,
+   más tsume, IA más fuerte, modo oscuro.
 
 ## Comandos
 ```bash
