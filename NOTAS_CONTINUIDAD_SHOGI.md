@@ -39,12 +39,11 @@ uchifuzume, jaque, jaque mate, derrota sin jugadas legales, sennichite
 (tablas) y jaque perpetuo (pierde quien da jaque).
 
 ## Pendiente (requiere decisiones o cuentas del responsable)
-1. Elegir licencia (README: "Pendiente de definir").
-2. Desplegar con `render.yaml` o `docker compose` en un servidor propio.
+1. Desplegar con `render.yaml` o `docker compose` en un servidor propio.
    Las imágenes Docker no se pudieron construir en el entorno de desarrollo
    (Docker Hub 429 y sin PyPI dentro de los contenedores).
-3. Probar la app móvil en iOS/Android reales y publicarla con EAS.
-4. Opcional: cambiar contraseña / borrar cuenta también desde la app móvil,
+2. Probar la app móvil en iOS/Android reales y publicarla con EAS.
+3. Opcional: cambiar contraseña / borrar cuenta también desde la app móvil,
    más tsume, IA más fuerte, modo oscuro.
 
 ## Comandos

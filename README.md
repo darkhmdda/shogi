@@ -95,10 +95,10 @@ sincronizada. Backend y base de datos con migraciones, listos para desplegar
 
 Pendiente, a decidir por el responsable del proyecto:
 
-- Elegir la licencia.
 - Publicar en un hosting (ver [docs/despliegue.md](docs/despliegue.md)).
 - Probar la app móvil en dispositivos reales y publicarla con EAS.
 
 ## Licencia
 
-Pendiente de definir.
+[MIT](LICENSE) © 2026 darkhmdda. Puedes usar, copiar, modificar y distribuir el
+código siempre que conserves el aviso de copyright y la licencia.
