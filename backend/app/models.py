@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -36,6 +36,12 @@ class AuthToken(Base):
 
 class Progress(Base):
     __tablename__ = "progress"
+    __table_args__ = (
+        CheckConstraint(
+            "games_played >= 0 AND games_won >= 0 AND games_lost >= 0 AND games_drawn >= 0",
+            name="ck_progress_counters",
+        ),
+    )
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     # {"lesson-id": "fecha ISO"} para lecciones y problemas resueltos.
@@ -52,6 +58,17 @@ class Progress(Base):
 
 class Game(Base):
     __tablename__ = "games"
+    __table_args__ = (
+        Index("ix_games_user_created", "user_id", "created_at"),
+        CheckConstraint("winner IN ('sente', 'gote')", name="ck_games_winner"),
+        CheckConstraint(
+            "reason IN ('checkmate', 'no-moves', 'repetition', 'perpetual-check', 'resignation', 'impasse')",
+            name="ck_games_reason",
+        ),
+        CheckConstraint("mode IN ('ai', 'local')", name="ck_games_mode"),
+        CheckConstraint("difficulty IN ('easy', 'normal', 'hard')", name="ck_games_difficulty"),
+        CheckConstraint("human_side IN ('sente', 'gote')", name="ck_games_human_side"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)

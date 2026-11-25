@@ -24,6 +24,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Board, PromotionPanel } from '../components/Board'
 import { Button, Card, Feedback, Row } from '../components/ui'
+import { uploadGame } from '../account'
 import { recordGame } from '../progress'
 import { colors, spacing } from '../theme'
 
@@ -100,6 +101,18 @@ export function PlayScreen() {
     if (!next.result) return
     if (next.result.winner === null) recordGame('drawn')
     else recordGame(next.result.winner === humanSide ? 'won' : 'lost')
+
+    // Con sesión iniciada, la partida se guarda también en el servidor.
+    const saved = serializeGame(next)
+    uploadGame({
+      sfen: saved.sfen,
+      moves: saved.moves,
+      winner: next.result.winner,
+      reason: next.result.reason,
+      mode: 'ai',
+      difficulty,
+      human_side: humanSide,
+    }).catch(() => {})
   }
 
   function commit(current: GameState, move: Move, byMachine: boolean) {

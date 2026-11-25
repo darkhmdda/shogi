@@ -5,6 +5,7 @@
   "workspaces": [
     "packages/engine",
     "packages/react",
+    "packages/api",
     "apps/web",
     "apps/mobile"
   ],
@@ -12,8 +13,8 @@
     "dev": "npm run dev --workspace web",
     "build": "npm run build --workspace web",
     "lint": "npm run lint --workspace web",
-    "test": "npm test --workspace @shogi/engine",
-    "typecheck": "npm run typecheck --workspace @shogi/engine --workspace @shogi/react --workspace mobile",
+    "test": "npm test --workspace @shogi/engine --workspace @shogi/api",
+    "typecheck": "npm run typecheck --workspace @shogi/engine --workspace @shogi/react --workspace @shogi/api --workspace mobile",
     "mobile": "npm start --workspace mobile"
   },
   "overrides": {

@@ -14,6 +14,13 @@ web, así que las reglas, la IA, las lecciones y los problemas son idénticos.
 El progreso se guarda en el dispositivo con AsyncStorage, en el mismo formato
 que la web y el backend.
 
+## Cuenta (opcional)
+
+Con `EXPO_PUBLIC_API_URL` definida (ver `.env.example`) aparece la pestaña
+**Cuenta**: el progreso se sincroniza con el servidor —el mismo que usa la
+web— y las partidas terminadas se guardan. En un teléfono físico usa la IP de
+tu ordenador en la red local, no `localhost`.
+
 ## Uso
 
 ```bash

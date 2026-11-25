@@ -1,4 +1,5 @@
-# Entorno completo: PostgreSQL + API.  Uso: docker compose up
+# Entorno completo: PostgreSQL + API + web.
+# Uso: docker compose up --build   →  web en http://localhost:8080, API en http://localhost:8000
 services:
   db:
     image: postgres:16
@@ -8,7 +9,6 @@ services:
       POSTGRES_DB: shogi
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
     ports:
       - "5432:5432"
     healthcheck:
@@ -20,12 +20,24 @@ services:
     build: ./backend
     environment:
       DATABASE_URL: postgresql://shogi:shogi@db:5432/shogi
-      SHOGI_CORS_ORIGINS: http://localhost:5173,http://localhost:4173
+      SHOGI_AUTO_CREATE: "0"
+      SHOGI_CORS_ORIGINS: http://localhost:8080,http://localhost:5173
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/web.Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8000
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
 
 volumes:
   db-data:

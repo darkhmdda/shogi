@@ -10,9 +10,10 @@ from .routers import auth, games, progress
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    # Crea las tablas si no existen. En producción, database/schema.sql
-    # documenta el esquema equivalente para PostgreSQL.
-    Base.metadata.create_all(engine)
+    # En desarrollo crea las tablas si no existen. En producción
+    # (SHOGI_AUTO_CREATE=0) el esquema lo gestionan las migraciones de Alembic.
+    if settings.auto_create_tables:
+        Base.metadata.create_all(engine)
     yield
 
 

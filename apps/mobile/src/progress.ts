@@ -41,14 +41,24 @@ export async function loadProgress(): Promise<void> {
   }
 }
 
+export function subscribe(listener: () => void) {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
+
 export function useProgress(): Progress {
-  return useSyncExternalStore(
-    (listener) => {
-      listeners.add(listener)
-      return () => listeners.delete(listener)
-    },
-    () => current,
-  )
+  return useSyncExternalStore(subscribe, () => current)
+}
+
+export function getProgress(): Progress {
+  return current
+}
+
+/** Sustituye el progreso (al sincronizar con el servidor). */
+export function replaceProgress(next: Progress) {
+  save({ ...empty(), ...next })
 }
 
 export function completeLesson(id: string) {

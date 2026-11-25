@@ -1,6 +1,6 @@
 import './Training.css'
 import { useEffect, useState, type FormEvent } from 'react'
-import { authenticate, listGames, logout, syncProgress, useAccount, useGamesVersion, type SavedGameOut } from '../api'
+import { authenticate, listGames, logout, syncProgress, useAccount, useGamesVersion, type SavedGame } from '../api'
 import { useProgress } from '../progress'
 
 const REASONS: Record<string, string> = {
@@ -22,7 +22,7 @@ export default function AccountPanel() {
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [games, setGames] = useState<SavedGameOut[] | null>(null)
+  const [games, setGames] = useState<SavedGame[] | null>(null)
 
   useEffect(() => {
     if (!account) return

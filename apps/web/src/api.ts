@@ -1,14 +1,23 @@
+import {
+  createApiClient,
+  pickProgress,
+  progressFingerprint,
+  type Account,
+  type GameUpload,
+  type SavedGame,
+} from '@shogi/api'
 import { useSyncExternalStore } from 'react'
-import { getProgress, replaceProgress, subscribe as subscribeProgress, type Progress } from './progress'
+import { getProgress, replaceProgress, subscribe as subscribeProgress } from './progress'
+
+export { ApiError, type SavedGame } from '@shogi/api'
 
 /** URL del backend. Si no está configurada, las funciones de cuenta se ocultan. */
-export const API_URL: string | null = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || null
-
-export type Account = { username: string; token: string } | null
+export const API_URL: string | null =
+  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || null
 
 const KEY = 'shogi.account.v1'
 
-function loadAccount(): Account {
+function loadAccount(): Account | null {
   try {
     const raw = window.localStorage.getItem(KEY)
     return raw ? (JSON.parse(raw) as Account) : null
@@ -17,10 +26,10 @@ function loadAccount(): Account {
   }
 }
 
-let account: Account = typeof window === 'undefined' ? null : loadAccount()
+let account: Account | null = typeof window === 'undefined' ? null : loadAccount()
 const listeners = new Set<() => void>()
 
-function setAccount(next: Account) {
+function setAccount(next: Account | null) {
   account = next
   try {
     if (next) window.localStorage.setItem(KEY, JSON.stringify(next))
@@ -31,7 +40,11 @@ function setAccount(next: Account) {
   listeners.forEach((listener) => listener())
 }
 
-export function useAccount(): Account {
+const client = API_URL
+  ? createApiClient({ baseUrl: API_URL, getToken: () => account?.token ?? null, onUnauthorized: () => setAccount(null) })
+  : null
+
+export function useAccount(): Account | null {
   return useSyncExternalStore(
     (listener) => {
       listeners.add(listener)
@@ -42,58 +55,15 @@ export function useAccount(): Account {
   )
 }
 
-export class ApiError extends Error {
-  status: number
-
-  constructor(status: number, message: string) {
-    super(message)
-    this.status = status
-  }
-}
-
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  if (!API_URL) throw new ApiError(0, 'No hay servidor configurado.')
-
-  const headers = new Headers(options.headers)
-  headers.set('Content-Type', 'application/json')
-  if (account) headers.set('Authorization', `Bearer ${account.token}`)
-
-  let response: Response
-  try {
-    response = await fetch(`${API_URL}${path}`, { ...options, headers })
-  } catch {
-    throw new ApiError(0, 'No se pudo conectar con el servidor.')
-  }
-
-  if (response.status === 401 && account) setAccount(null)
-
-  if (!response.ok) {
-    let detail = `Error ${response.status}`
-    try {
-      const body = (await response.json()) as { detail?: unknown }
-      if (typeof body.detail === 'string') detail = body.detail
-      else if (Array.isArray(body.detail)) detail = 'Revisa los datos: usuario de 3 a 32 caracteres y contraseña de al menos 8.'
-    } catch {
-      // Respuesta sin JSON.
-    }
-    throw new ApiError(response.status, detail)
-  }
-
-  return response.status === 204 ? (undefined as T) : ((await response.json()) as T)
-}
-
 export async function authenticate(mode: 'login' | 'register', username: string, password: string) {
-  const result = await request<{ token: string; username: string }>(`/auth/${mode}`, {
-    method: 'POST',
-    body: JSON.stringify({ username, password }),
-  })
-  setAccount(result)
+  if (!client) return
+  setAccount(await client[mode](username, password))
   await syncProgress()
 }
 
 export async function logout() {
   try {
-    await request('/auth/logout', { method: 'POST' })
+    await client?.logout()
   } finally {
     setAccount(null)
   }
@@ -103,19 +73,17 @@ let lastSynced = ''
 
 /** Envía el progreso local y adopta el resultado fusionado del servidor. */
 export async function syncProgress(): Promise<void> {
-  if (!account) return
-  const merged = await request<Progress>('/progress', { method: 'PUT', body: JSON.stringify(getProgress()) })
-  lastSynced = JSON.stringify({ lessons: merged.lessons, puzzles: merged.puzzles, games: merged.games })
-  replaceProgress({ lessons: merged.lessons, puzzles: merged.puzzles, games: merged.games })
+  if (!client || !account) return
+  const merged = pickProgress(await client.mergeProgress(getProgress()))
+  lastSynced = progressFingerprint(merged)
+  replaceProgress(merged)
 }
 
 // Sincronización automática (con un pequeño retardo) cuando cambia el progreso.
 let timer: number | undefined
-if (typeof window !== 'undefined' && API_URL) {
+if (typeof window !== 'undefined' && client) {
   subscribeProgress(() => {
-    if (!account) return
-    const current = getProgress()
-    if (JSON.stringify({ lessons: current.lessons, puzzles: current.puzzles, games: current.games }) === lastSynced) return
+    if (!account || progressFingerprint(getProgress()) === lastSynced) return
     window.clearTimeout(timer)
     timer = window.setTimeout(() => {
       syncProgress().catch(() => {
@@ -123,18 +91,6 @@ if (typeof window !== 'undefined' && API_URL) {
       })
     }, 1500)
   })
-}
-
-export type SavedGameOut = {
-  id: number
-  sfen: string
-  moves: string[]
-  winner: 'sente' | 'gote' | null
-  reason: string | null
-  mode: 'ai' | 'local'
-  difficulty: 'easy' | 'normal' | 'hard' | null
-  human_side: 'sente' | 'gote' | null
-  created_at: string
 }
 
 let gamesVersion = 0
@@ -152,13 +108,13 @@ export function useGamesVersion(): number {
   )
 }
 
-export async function uploadGame(game: Omit<SavedGameOut, 'id' | 'created_at'>): Promise<void> {
-  if (!account) return
-  await request('/games', { method: 'POST', body: JSON.stringify(game) })
+export async function uploadGame(game: GameUpload): Promise<void> {
+  if (!client || !account) return
+  await client.saveGame(game)
   gamesVersion++
   gamesListeners.forEach((listener) => listener())
 }
 
-export function listGames(): Promise<SavedGameOut[]> {
-  return request<SavedGameOut[]>('/games?limit=10')
+export function listGames(): Promise<SavedGame[]> {
+  return client ? client.listGames(10) : Promise.resolve([])
 }

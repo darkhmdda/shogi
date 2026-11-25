@@ -12,7 +12,11 @@
 - App móvil Expo SDK 58 en `apps/mobile` (inicio, lecciones, problemas, jugar).
 - `packages/react`: hook `useMoveInput` compartido por web y móvil.
 - Una sola versión de React (19.3.0) forzada con `overrides` en la raíz.
-- CI en `.github/workflows/ci.yml`: motor, web, móvil y backend con PostgreSQL.
+- `packages/api`: cliente HTTP compartido; web y móvil tienen cuenta y sincronización.
+- Migraciones con Alembic (`backend/migrations`); `database/schema.sql` se genera de ellas.
+- Tests de interfaz con Playwright (`apps/web/e2e`, escritorio y móvil).
+- Documentación en `docs/` (arquitectura, despliegue, contribuir).
+- CI en `.github/workflows/ci.yml`: motor, web, e2e, móvil, migraciones y backend con PostgreSQL.
 
 ## Decisión sobre bibliotecas externas
 Se descartaron @huguzturk/shogijs y shogiops:
@@ -28,12 +32,11 @@ uchifuzume, jaque, jaque mate, derrota sin jugadas legales, sennichite
 (tablas) y jaque perpetuo (pierde quien da jaque).
 
 ## Pendiente (siguientes pasos sugeridos)
-1. Cuentas y sincronización en la app móvil (reutilizar la API de `apps/web/src/api.ts`).
-2. Migraciones con Alembic cuando cambie el esquema.
-3. Más contenido: tsume de 5 jugadas, lecciones de aperturas y castillos.
-4. Partidas en línea entre usuarios (WebSockets).
-5. Tests de interfaz con Playwright en CI.
-6. Despliegue (web estática + API + PostgreSQL gestionado).
+1. Partidas en línea entre usuarios (WebSockets) con validación en el servidor.
+2. Más contenido: tsume de 5 jugadas, lecciones de aperturas y castillos.
+3. Despliegue público (las imágenes Docker no se pudieron construir en el
+   entorno de desarrollo por límites de red: Docker Hub 429 y sin PyPI en contenedores).
+4. Probar la app móvil en dispositivos reales y publicar con EAS.
 
 ## Comandos
 ```bash

@@ -14,6 +14,8 @@ class Settings:
     database_url: str = field(default_factory=lambda: os.getenv("DATABASE_URL", "sqlite:///./shogi.db"))
     cors_origins: list[str] = field(default_factory=_origins)
     token_days: int = field(default_factory=lambda: int(os.getenv("SHOGI_TOKEN_DAYS", "30")))
+    # En desarrollo las tablas se crean solas; en producción se usan las migraciones (alembic upgrade head).
+    auto_create_tables: bool = field(default_factory=lambda: os.getenv("SHOGI_AUTO_CREATE", "1") == "1")
 
 
 settings = Settings()

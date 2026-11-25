@@ -1,0 +1,6 @@
+**/node_modules
+**/dist
+**/.expo
+**/__pycache__
+**/*.db
+.git

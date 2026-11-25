@@ -1,58 +1,79 @@
 -- Esquema PostgreSQL de la aplicación de shōgi.
--- Equivale a los modelos de backend/app/models.py.
--- Uso: psql "$DATABASE_URL" -f database/schema.sql
+-- ARCHIVO GENERADO: no editar a mano. Fuente: backend/migrations (Alembic).
+-- Regenerar con: cd backend && ./scripts/generate_schema.sh
 
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS users (
-    id            SERIAL PRIMARY KEY,
-    username      VARCHAR(32)  NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    created_at    TIMESTAMPTZ  NOT NULL DEFAULT now()
+CREATE TABLE alembic_version (
+    version_num VARCHAR(32) NOT NULL, 
+    CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
 );
 
-CREATE INDEX IF NOT EXISTS ix_users_username ON users (username);
+-- Running upgrade  -> 0001
 
--- Tokens de sesión: solo se guarda el hash SHA-256 del token.
-CREATE TABLE IF NOT EXISTS auth_tokens (
-    id         SERIAL PRIMARY KEY,
-    user_id    INTEGER     NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    token_hash VARCHAR(64) NOT NULL UNIQUE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    expires_at TIMESTAMPTZ NOT NULL
+CREATE TABLE users (
+    id SERIAL NOT NULL, 
+    username VARCHAR(32) NOT NULL, 
+    password_hash VARCHAR(255) NOT NULL, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+    PRIMARY KEY (id)
 );
 
-CREATE INDEX IF NOT EXISTS ix_auth_tokens_user_id ON auth_tokens (user_id);
-CREATE INDEX IF NOT EXISTS ix_auth_tokens_token_hash ON auth_tokens (token_hash);
+CREATE UNIQUE INDEX ix_users_username ON users (username);
 
--- Progreso de aprendizaje: una fila por usuario.
--- lessons y puzzles: {"identificador": "fecha ISO de finalización"}.
-CREATE TABLE IF NOT EXISTS progress (
-    user_id      INTEGER     PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
-    lessons      JSON        NOT NULL DEFAULT '{}',
-    puzzles      JSON        NOT NULL DEFAULT '{}',
-    games_played INTEGER     NOT NULL DEFAULT 0 CHECK (games_played >= 0),
-    games_won    INTEGER     NOT NULL DEFAULT 0 CHECK (games_won >= 0),
-    games_lost   INTEGER     NOT NULL DEFAULT 0 CHECK (games_lost >= 0),
-    games_drawn  INTEGER     NOT NULL DEFAULT 0 CHECK (games_drawn >= 0),
-    updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE auth_tokens (
+    id SERIAL NOT NULL, 
+    user_id INTEGER NOT NULL, 
+    token_hash VARCHAR(64) NOT NULL, 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL, 
+    PRIMARY KEY (id), 
+    FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
--- Partidas guardadas: posición inicial en SFEN y movimientos en USI.
-CREATE TABLE IF NOT EXISTS games (
-    id         SERIAL PRIMARY KEY,
-    user_id    INTEGER      NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    start_sfen VARCHAR(160) NOT NULL,
-    moves      TEXT         NOT NULL DEFAULT '',
-    winner     VARCHAR(5)   CHECK (winner IN ('sente', 'gote')),
-    reason     VARCHAR(20)  CHECK (reason IN ('checkmate', 'no-moves', 'repetition', 'perpetual-check', 'resignation', 'impasse')),
-    mode       VARCHAR(10)  NOT NULL DEFAULT 'ai' CHECK (mode IN ('ai', 'local')),
-    difficulty VARCHAR(10)  CHECK (difficulty IN ('easy', 'normal', 'hard')),
-    human_side VARCHAR(5)   CHECK (human_side IN ('sente', 'gote')),
-    created_at TIMESTAMPTZ  NOT NULL DEFAULT now()
+CREATE INDEX ix_auth_tokens_user_id ON auth_tokens (user_id);
+
+CREATE UNIQUE INDEX ix_auth_tokens_token_hash ON auth_tokens (token_hash);
+
+CREATE TABLE progress (
+    user_id INTEGER NOT NULL, 
+    lessons JSON NOT NULL, 
+    puzzles JSON NOT NULL, 
+    games_played INTEGER DEFAULT '0' NOT NULL, 
+    games_won INTEGER DEFAULT '0' NOT NULL, 
+    games_lost INTEGER DEFAULT '0' NOT NULL, 
+    games_drawn INTEGER DEFAULT '0' NOT NULL, 
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+    PRIMARY KEY (user_id), 
+    CONSTRAINT ck_progress_counters CHECK (games_played >= 0 AND games_won >= 0 AND games_lost >= 0 AND games_drawn >= 0), 
+    FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS ix_games_user_id ON games (user_id);
-CREATE INDEX IF NOT EXISTS ix_games_user_created ON games (user_id, created_at DESC);
+CREATE TABLE games (
+    id SERIAL NOT NULL, 
+    user_id INTEGER NOT NULL, 
+    start_sfen VARCHAR(160) NOT NULL, 
+    moves TEXT DEFAULT '' NOT NULL, 
+    winner VARCHAR(5), 
+    reason VARCHAR(20), 
+    mode VARCHAR(10) DEFAULT 'ai' NOT NULL, 
+    difficulty VARCHAR(10), 
+    human_side VARCHAR(5), 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+    PRIMARY KEY (id), 
+    CONSTRAINT ck_games_winner CHECK (winner IN ('sente', 'gote')), 
+    CONSTRAINT ck_games_reason CHECK (reason IN ('checkmate', 'no-moves', 'repetition', 'perpetual-check', 'resignation', 'impasse')), 
+    CONSTRAINT ck_games_mode CHECK (mode IN ('ai', 'local')), 
+    CONSTRAINT ck_games_difficulty CHECK (difficulty IN ('easy', 'normal', 'hard')), 
+    CONSTRAINT ck_games_human_side CHECK (human_side IN ('sente', 'gote')), 
+    FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+CREATE INDEX ix_games_user_id ON games (user_id);
+
+CREATE INDEX ix_games_user_created ON games (user_id, created_at);
+
+INSERT INTO alembic_version (version_num) VALUES ('0001') RETURNING alembic_version.version_num;
 
 COMMIT;
+

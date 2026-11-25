@@ -24,10 +24,10 @@ Crear una aplicación que permita a principiantes aprender las reglas del shōgi
 **Backend** (`backend`): API FastAPI con cuentas, sincronización del progreso
 (fusión sin pérdida de datos entre dispositivos) y partidas guardadas.
 
-**Base de datos** (`database`): esquema PostgreSQL.
+**Base de datos** (`database`): PostgreSQL con migraciones de Alembic.
 
 **Aplicación móvil** (`apps/mobile`): Expo para iOS y Android con lecciones,
-problemas y partidas contra la máquina; progreso guardado en el dispositivo.
+problemas, partidas contra la máquina y cuenta opcional sincronizada con la web.
 
 **Motor** (`packages/engine`): reglas, IA, solucionador de tsume, SFEN/KIF y
 contenido educativo en TypeScript puro, compartido por la web y la app móvil.
@@ -51,7 +51,9 @@ contenido educativo en TypeScript puro, compartido por la web y la app móvil.
 | `database/` | ✅ | Esquema PostgreSQL |
 | `apps/mobile/` | ✅ | Aplicación móvil (Expo + React Native) |
 | `packages/react/` | ✅ | Hooks de React compartidos por web y móvil |
-| `docs/` | ⏳ | Documentación técnica |
+| `packages/api/` | ✅ | Cliente de la API compartido por web y móvil |
+| `deploy/` | ✅ | Imagen de la web (nginx) |
+| `docs/` | ✅ | [Arquitectura](docs/arquitectura.md), [despliegue](docs/despliegue.md), [cómo contribuir](docs/contribuir.md) |
 
 ## Desarrollo
 
@@ -66,21 +68,22 @@ npm run mobile       # app móvil con Expo
 Backend y base de datos:
 
 ```bash
-docker compose up    # PostgreSQL + API en http://localhost:8000
+docker compose up --build   # PostgreSQL + API (:8000) + web (:8080)
 ```
 
 Para conectar la web con la API, crea `apps/web/.env` con
 `VITE_API_URL=http://localhost:8000` (ver `apps/web/.env.example`). Sin esa
 variable la web funciona igual, sin cuentas.
 
-GitHub Actions comprueba el motor, la web y el backend (contra PostgreSQL)
-en cada push.
+GitHub Actions comprueba en cada push el motor, la web (también con tests de
+interfaz en Playwright), la app móvil, las migraciones y el backend contra
+PostgreSQL.
 
 ## Estado del proyecto
 
-En desarrollo. La aplicación web está completa; el backend, la base de datos
-y la aplicación móvil están operativos. Pendiente: cuentas y sincronización
-en la app móvil, despliegue y partidas en línea.
+En desarrollo. Web completa; app móvil, backend y base de datos operativos y
+sincronizados entre sí. Pendiente: partidas en línea entre usuarios, más
+contenido y despliegue público.
 
 ## Licencia
 
