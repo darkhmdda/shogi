@@ -107,3 +107,19 @@ test('la página tiene manifiesto e idioma', async ({ page }) => {
   const manifest = await page.request.get('/manifest.webmanifest')
   expect((await manifest.json()).short_name).toBe('Shōgi')
 })
+
+test('el selector de tema cambia y recuerda el modo oscuro', async ({ page }) => {
+  const fondo = () => page.locator('.app-shell').evaluate((e) => getComputedStyle(e).backgroundColor)
+  const claro = await fondo()
+  await page.getByRole('radio', { name: 'Oscuro' }).click()
+  expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe('dark')
+  const oscuro = await fondo()
+  expect(oscuro).not.toBe(claro)
+  await page.reload()
+  expect(await fondo()).toBe(oscuro)
+  // El tablero mantiene su madera en modo oscuro.
+  const madera = await page.locator('#tablero .shogi-square').first().evaluate((e) => getComputedStyle(e).backgroundColor)
+  expect(madera).not.toBe(oscuro)
+  await page.getByRole('radio', { name: /Automático/ }).click()
+  expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBeUndefined()
+})

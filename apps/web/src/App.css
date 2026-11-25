@@ -4,11 +4,11 @@
 }
 
 .app-shell {
-  --paper: #f7f5ef;
-  --ink: #292c26;
-  --muted: #858579;
-  --red: #a84739;
-  --line: #e6e2d8;
+  --paper: var(--k-f7f5ef);
+  --ink: var(--k-292c26);
+  --muted: var(--k-858579);
+  --red: var(--k-a84739);
+  --line: var(--k-e6e2d8);
   min-height: 100vh;
   color: var(--ink);
   background: var(--paper);
@@ -21,7 +21,7 @@
   display: flex;
   flex-direction: column;
   padding: 32px 22px 26px;
-  background: #efede5;
+  background: var(--k-efede5);
   border-right: 1px solid var(--line);
   z-index: 5;
 }
@@ -42,7 +42,7 @@
   width: 42px;
   height: 42px;
   background: var(--red);
-  color: #fffaf0;
+  color: var(--k-fffaf0);
   font-family: serif;
   font-size: 26px;
 }
@@ -82,19 +82,19 @@
   min-height: 47px;
   padding: 0 13px;
   border-radius: 4px;
-  color: #77776d;
+  color: var(--k-77776d);
   font-size: 13px;
   text-decoration: none;
   transition: background 160ms ease, color 160ms ease;
 }
 
 .nav-link:hover {
-  background: #e5e1d7;
+  background: var(--k-e5e1d7);
   color: var(--ink);
 }
 
 .nav-link.active {
-  background: #e5dfd2;
+  background: var(--k-e5dfd2);
   color: var(--ink);
   font-weight: 650;
 }
@@ -108,11 +108,11 @@
 .sidebar-bottom {
   margin-top: auto;
   padding: 22px 13px 0;
-  border-top: 1px solid #dedace;
+  border-top: 1px solid var(--k-dedace);
 }
 
 .sidebar-decoration {
-  color: #b6a58a;
+  color: var(--k-b6a58a);
   font-family: serif;
   font-size: 36px;
 }
@@ -144,13 +144,51 @@
 }
 
 .breadcrumb {
-  color: #77776d;
+  color: var(--k-77776d);
   font-size: 12px;
 }
 
 .breadcrumb span {
   padding: 0 9px;
-  color: #b4b0a5;
+  color: var(--k-b4b0a5);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--k-efede5);
+}
+
+.theme-toggle button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.theme-toggle button.active {
+  background: var(--k-fffdf8);
+  color: var(--ink);
+  box-shadow: 0 1px 3px var(--k-59442b12);
+}
+
+.theme-toggle button:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 1px;
 }
 
 .level-label {
@@ -160,14 +198,14 @@
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 1.5px;
-  color: #77776d;
+  color: var(--k-77776d);
 }
 
 .status-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #82916a;
+  background: var(--k-82916a);
 }
 
 .hero {
@@ -215,7 +253,7 @@
 
 .hero-description {
   max-width: 430px;
-  color: #77776d;
+  color: var(--k-77776d);
   font-size: 13px;
   line-height: 1.95;
 }
@@ -241,7 +279,7 @@
 }
 
 .button-primary:hover {
-  background: #85392f;
+  background: var(--k-85392f);
 }
 
 .button-primary span {
@@ -262,11 +300,11 @@
   justify-content: center;
   overflow: hidden;
   background:
-    radial-gradient(ellipse at 50% 45%, #e7dfce 0%, #eee9dd 45%, #f1eee6 75%);
+    radial-gradient(ellipse at 50% 45%, var(--k-e7dfce) 0%, var(--k-eee9dd) 45%, var(--k-f1eee6) 75%);
 }
 
 .art-caption {
-  color: #898170;
+  color: var(--k-898170);
   font-size: 9px;
   letter-spacing: 2.5px;
 }
@@ -280,22 +318,22 @@
   aspect-ratio: 1;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  border: 1px solid #b6a183;
+  border: 1px solid var(--k-b6a183);
   transform: rotate(-5deg);
-  box-shadow: 9px 13px 20px #63533b1a;
+  box-shadow: 9px 13px 20px var(--k-63533b1a);
 }
 
 .mini-square {
   position: relative;
   display: grid;
   place-items: center;
-  border-right: 1px solid #b9a687;
-  border-bottom: 1px solid #b9a687;
-  background: #e6d4af;
+  border-right: 1px solid var(--k-b9a687);
+  border-bottom: 1px solid var(--k-b9a687);
+  background: var(--k-e6d4af);
 }
 
 .mini-square:nth-child(even) {
-  background: #eddfc4;
+  background: var(--k-eddfc4);
 }
 
 .mini-piece {
@@ -304,16 +342,16 @@
   width: 73%;
   height: 82%;
   clip-path: polygon(50% 0, 96% 22%, 88% 100%, 12% 100%, 4% 22%);
-  background: #f9f1dd;
-  color: #55402e;
+  background: var(--k-f9f1dd);
+  color: var(--k-55402e);
   font-family: serif;
   font-size: clamp(15px, 2vw, 25px);
-  filter: drop-shadow(2px 2px 1px #5b493333);
+  filter: drop-shadow(2px 2px 1px var(--k-5b493333));
 }
 
 .piece-12 {
   background: var(--red);
-  color: #fff3dd;
+  color: var(--k-fff3dd);
 }
 
 .art-circle {
@@ -324,9 +362,9 @@
   place-items: center;
   width: 67px;
   height: 67px;
-  border: 1px solid #bdac8c;
+  border: 1px solid var(--k-bdac8c);
   border-radius: 50%;
-  color: #ad9a79;
+  color: var(--k-ad9a79);
   font-family: serif;
   font-size: 35px;
   opacity: 0.85;
@@ -387,7 +425,7 @@
 }
 
 .feature-card:hover {
-  background: #f0ede5;
+  background: var(--k-f0ede5);
 }
 
 .feature-top {
@@ -398,7 +436,7 @@
 }
 
 .feature-number {
-  color: #9c988b;
+  color: var(--k-9c988b);
   font-size: 10px;
   letter-spacing: 1px;
 }
@@ -408,7 +446,7 @@
   place-items: center;
   width: 42px;
   height: 42px;
-  background: #ece6d9;
+  background: var(--k-ece6d9);
   color: var(--red);
   font-family: serif;
   font-size: 23px;
@@ -424,7 +462,7 @@
 .feature-card p {
   min-height: 58px;
   margin: 0;
-  color: #77776d;
+  color: var(--k-77776d);
   font-size: 11px;
   line-height: 1.8;
 }
@@ -455,7 +493,7 @@
   gap: 12px;
   padding: 20px 0 26px;
   border-top: 1px solid var(--line);
-  color: #969184;
+  color: var(--k-969184);
   font-size: 9px;
   letter-spacing: 1px;
 }
@@ -555,6 +593,10 @@
     letter-spacing: 0.6px;
   }
 
+  .topbar-right {
+    gap: 10px;
+  }
+
   .hero {
     grid-template-columns: 1fr;
     gap: 30px;
@@ -601,6 +643,11 @@
 }
 
 @media (max-width: 430px) {
+  /* En pantallas estrechas el selector de tema ocupa el sitio de la etiqueta. */
+  .level-label {
+    display: none;
+  }
+
   .sidebar {
     padding-inline: 10px;
   }
@@ -648,9 +695,9 @@
   display: grid;
   gap: 2px;
   padding: 14px 16px;
-  border: 1px solid #e4d6bd;
+  border: 1px solid var(--k-e4d6bd);
   border-radius: 10px;
-  background: #fffdf8;
+  background: var(--k-fffdf8);
 }
 
 .progress-strip strong {
@@ -659,7 +706,7 @@
 }
 
 .progress-strip span {
-  color: #777164;
+  color: var(--k-777164);
   font-size: 0.85rem;
 }
 

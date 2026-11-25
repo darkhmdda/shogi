@@ -12,23 +12,23 @@
 
 .piece-guide-toolbar button {
   padding: 8px 14px;
-  border: 1px solid #cdbb9a;
+  border: 1px solid var(--k-cdbb9a);
   border-radius: 999px;
-  background: #fffdf8;
-  color: #413326;
+  background: var(--k-fffdf8);
+  color: var(--k-413326);
   font: inherit;
   font-size: 0.9rem;
   cursor: pointer;
 }
 
 .piece-guide-toolbar button.active {
-  border-color: #413326;
-  background: #413326;
-  color: #fff7e8;
+  border-color: var(--k-413326);
+  background: var(--k-413326);
+  color: var(--k-fff7e8);
 }
 
 .piece-guide-toolbar button:focus-visible {
-  outline: 3px solid #0f766e;
+  outline: 3px solid var(--k-0f766e);
   outline-offset: 2px;
 }
 
@@ -37,7 +37,7 @@
   align-items: center;
   gap: 6px;
   margin-left: auto;
-  color: #777164;
+  color: var(--k-777164);
   font-size: 0.85rem;
 }
 
@@ -61,9 +61,9 @@
   gap: 14px;
   align-items: start;
   padding: 14px;
-  border: 1px solid #e4d6bd;
+  border: 1px solid var(--k-e4d6bd);
   border-radius: 10px;
-  background: #fffdf8;
+  background: var(--k-fffdf8);
 }
 
 .piece-card h3 {
@@ -72,7 +72,7 @@
 }
 
 .piece-card small {
-  color: #777164;
+  color: var(--k-777164);
 }
 
 .piece-card p {
@@ -82,7 +82,7 @@
 }
 
 .piece-card .piece-tip {
-  color: #5f5a4e;
+  color: var(--k-5f5a4e);
   font-style: italic;
 }
 
@@ -91,41 +91,41 @@
   grid-template-columns: repeat(5, 1fr);
   width: 112px;
   aspect-ratio: 1;
-  border-top: 1px solid #8e704a;
-  border-left: 1px solid #8e704a;
-  background: #ead6ad;
+  border-top: 1px solid var(--k-8e704a);
+  border-left: 1px solid var(--k-8e704a);
+  background: var(--k-ead6ad);
 }
 
 .move-diagram span {
   display: grid;
   place-items: center;
-  border-right: 1px solid #8e704a;
-  border-bottom: 1px solid #8e704a;
+  border-right: 1px solid var(--k-8e704a);
+  border-bottom: 1px solid var(--k-8e704a);
   font-family: serif;
   font-size: 15px;
 }
 
 .move-diagram .center {
-  background: #fff7e8;
-  color: #3f3023;
+  background: var(--k-fff7e8);
+  color: var(--k-3f3023);
   font-weight: 700;
 }
 
 .move-diagram .step,
 .piece-guide-legend .step {
-  background: #2f6b3a;
+  background: var(--k-2f6b3a);
 }
 
 .move-diagram .slide,
 .piece-guide-legend .slide {
-  background: #7fae86;
+  background: var(--k-7fae86);
 }
 
 .rules-summary {
   padding: 16px 18px;
-  border: 1px solid #e4d6bd;
+  border: 1px solid var(--k-e4d6bd);
   border-radius: 10px;
-  background: #fbf7ee;
+  background: var(--k-fbf7ee);
 }
 
 .rules-summary h3 {

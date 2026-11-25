@@ -1,38 +1,43 @@
 
+/* Colores de madera de todos los tableros (partida, lecciones, problemas, en línea). */
+.shogi-game,
+.shogi-board-column {
+  --wood: var(--k-d9bd8b);
+  --wood-light: var(--k-ead6ad);
+  --wood-dark: var(--k-a88657);
+  --piece-color: var(--k-413326);
+}
+
 .shogi-game {
-  --wood: #d9bd8b;
-  --wood-light: #ead6ad;
-  --wood-dark: #a88657;
-  --piece-color: #413326;
   width: 100%;
   max-width: 1040px;
   margin-inline: auto;
-  color: #292c26;
+  color: var(--k-292c26);
 }
 
 .shogi-turn {
   margin: 0 0 12px;
   padding: 10px 14px;
-  border: 1px solid #d8c5a4;
+  border: 1px solid var(--k-d8c5a4);
   border-radius: 9px;
-  background: #fbf7ee;
+  background: var(--k-fbf7ee);
   font-weight: 650;
 }
 
 .shogi-turn.in-check {
-  border-color: #c2410c;
-  background: #fff1ec;
-  color: #9a3412;
+  border-color: var(--k-c2410c);
+  background: var(--k-fff1ec);
+  color: var(--k-9a3412);
 }
 
 .shogi-turn.finished {
-  border-color: #2f6b3a;
-  background: #eef6ee;
-  color: #1f4d29;
+  border-color: var(--k-2f6b3a);
+  background: var(--k-eef6ee);
+  color: var(--k-1f4d29);
 }
 
 .muted {
-  color: #777164;
+  color: var(--k-777164);
   font-size: 0.9rem;
 }
 
@@ -48,7 +53,7 @@
 }
 
 .piece-info-head small {
-  color: #777164;
+  color: var(--k-777164);
 }
 
 .piece-info-kanji {
@@ -57,14 +62,14 @@
   width: 44px;
   height: 48px;
   clip-path: polygon(50% 0, 96% 20%, 87% 100%, 13% 100%, 4% 20%);
-  background: linear-gradient(135deg, #fff7e8, #ead9b9);
-  color: #3f3023;
+  background: linear-gradient(135deg, var(--k-fff7e8), var(--k-ead9b9));
+  color: var(--k-3f3023);
   font-family: serif;
   font-size: 1.6rem;
 }
 
 .piece-info-kanji.promoted {
-  color: #b03a2b;
+  color: var(--k-b03a2b);
 }
 
 .piece-info p + p {
@@ -96,9 +101,9 @@
 
 .shogi-controls select {
   padding: 7px 8px;
-  border: 1px solid #cdbb9a;
+  border: 1px solid var(--k-cdbb9a);
   border-radius: 6px;
-  background: #fffdf8;
+  background: var(--k-fffdf8);
   font: inherit;
   font-weight: 500;
 }
@@ -112,18 +117,18 @@
 .shogi-buttons button,
 .practice-list button {
   padding: 7px 10px;
-  border: 1px solid #b9ad98;
+  border: 1px solid var(--k-b9ad98);
   border-radius: 6px;
-  background: #f5efe4;
-  color: #413326;
+  background: var(--k-f5efe4);
+  color: var(--k-413326);
   font: inherit;
   font-size: 0.85rem;
   cursor: pointer;
 }
 
 .shogi-buttons button:first-child {
-  border-color: #2459a9;
-  background: #2563eb;
+  border-color: var(--k-2459a9);
+  background: var(--k-2563eb);
   color: white;
 }
 
@@ -142,8 +147,8 @@
 }
 
 .practice-list button.active {
-  border-color: #2f6b3a;
-  background: #eef6ee;
+  border-color: var(--k-2f6b3a);
+  background: var(--k-eef6ee);
 }
 
 .practice-note {
@@ -180,17 +185,17 @@
   gap: 14px;
   min-width: 0;
   padding: 14px;
-  border: 1px solid #d8c5a4;
+  border: 1px solid var(--k-d8c5a4);
   border-radius: 12px;
-  background: #fbf7ee;
-  box-shadow: 0 5px 16px #59442b12;
+  background: var(--k-fbf7ee);
+  box-shadow: 0 5px 16px var(--k-59442b12);
 }
 
 .shogi-panel-section {
   padding: 12px;
-  border: 1px solid #e4d6bd;
+  border: 1px solid var(--k-e4d6bd);
   border-radius: 9px;
-  background: #fffdf8;
+  background: var(--k-fffdf8);
 }
 
 .shogi-panel-section h3 {
@@ -209,8 +214,8 @@
   grid-template-rows: repeat(9, minmax(0, 1fr));
   width: 100%;
   aspect-ratio: 1;
-  border-top: 1px solid #8e704a;
-  border-left: 1px solid #8e704a;
+  border-top: 1px solid var(--k-8e704a);
+  border-left: 1px solid var(--k-8e704a);
   background: var(--wood-light);
 }
 
@@ -231,8 +236,8 @@
   min-width: 0;
   min-height: 0;
   aspect-ratio: 1;
-  border-right: 1px solid #8e704a;
-  border-bottom: 1px solid #8e704a;
+  border-right: 1px solid var(--k-8e704a);
+  border-bottom: 1px solid var(--k-8e704a);
   background: var(--wood-light);
   cursor: pointer;
 }
@@ -243,18 +248,18 @@
   width: 86%;
   height: 91%;
   clip-path: polygon(50% 0, 96% 20%, 87% 100%, 13% 100%, 4% 20%);
-  background: #f7edda;
+  background: var(--k-f7edda);
   color: var(--piece-color);
   font-family: serif;
   font-size: clamp(12px, 2.4vw, 28px);
   line-height: 1;
-  filter: drop-shadow(1px 2px 1px #47351f30);
+  filter: drop-shadow(1px 2px 1px var(--k-47351f30));
   user-select: none;
 }
 
 .shogi-piece {
-  background: linear-gradient(135deg, #fff7e8, #ead9b9);
-  color: #3f3023;
+  background: linear-gradient(135deg, var(--k-fff7e8), var(--k-ead9b9));
+  color: var(--k-3f3023);
 }
 
 .shogi-piece.upside-down {
@@ -262,7 +267,7 @@
 }
 
 .shogi-piece.promoted {
-  color: #b03a2b;
+  color: var(--k-b03a2b);
 }
 
 @media (min-width: 760px) {
@@ -272,30 +277,30 @@
 }
 
 .shogi-square.selected-sente {
-  background: #bfdbfe;
-  box-shadow: inset 0 0 0 3px #2563eb;
+  background: var(--k-bfdbfe);
+  box-shadow: inset 0 0 0 3px var(--k-2563eb);
 }
 
 .shogi-square.selected-gote {
-  background: #fecaca;
-  box-shadow: inset 0 0 0 3px #dc2626;
+  background: var(--k-fecaca);
+  box-shadow: inset 0 0 0 3px var(--k-dc2626);
 }
 
 .shogi-square:hover {
-  background: #f3e3c3;
+  background: var(--k-f3e3c3);
 }
 
 .shogi-square.last-move {
-  background: #e9d48f;
+  background: var(--k-e9d48f);
 }
 
 .shogi-square.in-check {
-  background: #f8b4a8;
-  box-shadow: inset 0 0 0 3px #c2410c;
+  background: var(--k-f8b4a8);
+  box-shadow: inset 0 0 0 3px var(--k-c2410c);
 }
 
 .shogi-square.pending {
-  box-shadow: inset 0 0 0 3px #7c3aed;
+  box-shadow: inset 0 0 0 3px var(--k-7c3aed);
 }
 
 .shogi-square.move-hint::after {
@@ -304,7 +309,7 @@
   width: 26%;
   height: 26%;
   border-radius: 50%;
-  background: #2f6b3a99;
+  background: var(--k-2f6b3a99);
   pointer-events: none;
 }
 
@@ -312,7 +317,7 @@
   content: '';
   position: absolute;
   inset: 6%;
-  border: 3px solid #2f6b3acc;
+  border: 3px solid var(--k-2f6b3acc);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -323,21 +328,21 @@
   align-items: center;
   gap: 10px;
   padding: 10px;
-  border: 1px solid var(--wood-light, #b58863);
+  border: 1px solid var(--wood-light, var(--k-b58863));
   border-radius: 8px;
-  background: #fffaf0;
+  background: var(--k-fffdf8);
 }
 
 .shogi-hand.sente {
-  border-left: 4px solid #2563eb;
+  border-left: 4px solid var(--k-2563eb);
 }
 
 .shogi-hand.gote {
-  border-left: 4px solid #dc2626;
+  border-left: 4px solid var(--k-dc2626);
 }
 
 .shogi-hand.active {
-  box-shadow: 0 0 0 2px #d8c5a4;
+  box-shadow: 0 0 0 2px var(--k-d8c5a4);
 }
 
 .shogi-hand strong {
@@ -355,10 +360,10 @@
   align-items: center;
   gap: 4px;
   padding: 6px 10px;
-  border: 1px solid #8e704a;
+  border: 1px solid var(--k-8e704a);
   border-radius: 5px;
-  background: #f0d9b5;
-  color: #222;
+  background: var(--k-f0d9b5);
+  color: var(--k-222222);
   font-size: 1.2rem;
   cursor: pointer;
 }
@@ -369,8 +374,8 @@
 }
 
 .shogi-hand-piece.selected {
-  outline: 3px solid #2563eb;
-  background: #bfdbfe;
+  outline: 3px solid var(--k-2563eb);
+  background: var(--k-bfdbfe);
 }
 
 .shogi-hand-piece small {
@@ -400,9 +405,9 @@
 .promotion-buttons button {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #2459a9;
+  border: 1px solid var(--k-2459a9);
   border-radius: 7px;
-  background: #2563eb;
+  background: var(--k-2563eb);
   color: white;
   font: inherit;
   font-weight: 650;
@@ -410,9 +415,9 @@
 }
 
 .promotion-buttons .secondary {
-  border-color: #b9ad98;
-  background: #f5efe4;
-  color: #413326;
+  border-color: var(--k-b9ad98);
+  background: var(--k-f5efe4);
+  color: var(--k-413326);
 }
 
 .promotion-buttons button:hover {
@@ -427,7 +432,7 @@
 }
 
 .promotion-preview em {
-  color: #b03a2b;
+  color: var(--k-b03a2b);
   font-style: normal;
 }
 
@@ -437,7 +442,7 @@
 .practice-list button:focus-visible,
 .shogi-hand-piece:focus-visible,
 .shogi-square:focus-visible {
-  outline: 3px solid #0f766e;
+  outline: 3px solid var(--k-0f766e);
   outline-offset: 2px;
 }
 
@@ -457,7 +462,7 @@
   grid-template-columns: repeat(9, minmax(0, 1fr));
   align-items: center;
   padding-bottom: 5px;
-  color: #55442f;
+  color: var(--k-55442f);
   font-family: serif;
   font-size: 13px;
   font-weight: 600;
@@ -478,7 +483,7 @@
   grid-template-rows: repeat(9, minmax(0, 1fr));
   align-items: center;
   justify-items: center;
-  color: #55442f;
+  color: var(--k-55442f);
   font-family: serif;
   font-size: 13px;
   font-weight: 600;
@@ -544,8 +549,8 @@
 }
 
 .impasse {
-  border-color: #d4a72c;
-  background: #fdf7e3;
+  border-color: var(--k-d4a72c);
+  background: var(--k-fdf7e3);
 }
 
 .impasse p {
@@ -575,9 +580,9 @@
 .sfen-label textarea {
   width: 100%;
   padding: 7px 8px;
-  border: 1px solid #cdbb9a;
+  border: 1px solid var(--k-cdbb9a);
   border-radius: 6px;
-  background: #fffdf8;
+  background: var(--k-fffdf8);
   font: 0.8rem ui-monospace, monospace;
   resize: vertical;
 }

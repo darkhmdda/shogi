@@ -9,6 +9,13 @@
       content="Aprende a jugar al shōgi, el ajedrez japonés: lecciones interactivas, problemas de mate, partidas contra la máquina y en línea."
     />
     <meta name="theme-color" content="#a84739" />
+    <script>
+      // Aplica el tema guardado antes de pintar la página (evita un destello claro).
+      try {
+        var tema = localStorage.getItem('shogi.theme')
+        if (tema === 'light' || tema === 'dark') document.documentElement.dataset.theme = tema
+      } catch (e) {}
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />

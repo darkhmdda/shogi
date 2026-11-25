@@ -3,6 +3,7 @@ import './App.css'
 import { useEffect, useState } from 'react'
 import AccountPanel from './components/AccountPanel'
 import Lessons from './components/Lessons'
+import ThemeToggle from './components/ThemeToggle'
 import OnlinePlay from './components/OnlinePlay'
 import PieceGuide from './components/PieceGuide'
 import Puzzles from './components/Puzzles'
@@ -100,9 +101,12 @@ function App() {
       <main className="main-content" id="inicio">
         <header className="topbar">
           <div className="breadcrumb">Tu espacio <span>/</span> Inicio</div>
-          <div className="level-label">
-            <span className="status-dot" />
-            RUTA DEL PRINCIPIANTE
+          <div className="topbar-right">
+            <div className="level-label">
+              <span className="status-dot" />
+              RUTA DEL PRINCIPIANTE
+            </div>
+            <ThemeToggle />
           </div>
         </header>
 

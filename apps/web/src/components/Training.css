@@ -14,7 +14,7 @@
   display: grid;
   gap: 6px;
   margin: 0 0 6px;
-  color: #5f5a4e;
+  color: var(--k-5f5a4e);
   font-size: 0.85rem;
 }
 
@@ -23,14 +23,14 @@
   height: 6px;
   overflow: hidden;
   border-radius: 999px;
-  background: #e4d6bd;
+  background: var(--k-e4d6bd);
 }
 
 .progress-bar span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: #2f6b3a;
+  background: var(--k-2f6b3a);
   transition: width 0.3s ease;
 }
 
@@ -40,18 +40,18 @@
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  border: 1px solid #e4d6bd;
+  border: 1px solid var(--k-e4d6bd);
   border-radius: 8px;
-  background: #fffdf8;
-  color: #292c26;
+  background: var(--k-fffdf8);
+  color: var(--k-292c26);
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
 
 .training-item.active {
-  border-color: #413326;
-  box-shadow: inset 3px 0 0 #a84739;
+  border-color: var(--k-413326);
+  box-shadow: inset 3px 0 0 var(--k-a84739);
 }
 
 .training-item strong {
@@ -61,7 +61,7 @@
 
 .training-item small {
   display: block;
-  color: #777164;
+  color: var(--k-777164);
   font-size: 0.78rem;
 }
 
@@ -71,13 +71,13 @@
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  background: #f0e3c8;
+  background: var(--k-f0e3c8);
   font-family: serif;
   font-size: 1.15rem;
 }
 
 .training-done {
-  color: #2f6b3a;
+  color: var(--k-2f6b3a);
   font-weight: 700;
 }
 
@@ -95,29 +95,29 @@
 .training-chip {
   width: 36px;
   height: 36px;
-  border: 1px solid #cdbb9a;
+  border: 1px solid var(--k-cdbb9a);
   border-radius: 8px;
-  background: #fffdf8;
-  color: #413326;
+  background: var(--k-fffdf8);
+  color: var(--k-413326);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
 }
 
 .training-chip.done {
-  border-color: #2f6b3a;
-  background: #eef6ee;
-  color: #1f4d29;
+  border-color: var(--k-2f6b3a);
+  background: var(--k-eef6ee);
+  color: var(--k-1f4d29);
 }
 
 .training-chip.active {
-  outline: 2px solid #a84739;
+  outline: 2px solid var(--k-a84739);
   outline-offset: 1px;
 }
 
 .training-item:focus-visible,
 .training-chip:focus-visible {
-  outline: 3px solid #0f766e;
+  outline: 3px solid var(--k-0f766e);
   outline-offset: 2px;
 }
 
@@ -140,7 +140,7 @@
 }
 
 .training-step {
-  color: #a84739;
+  color: var(--k-a84739);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -155,24 +155,24 @@
 .training-feedback {
   padding: 10px 12px;
   border-radius: 8px;
-  background: #f5efe4;
+  background: var(--k-f5efe4);
   line-height: 1.5;
 }
 
 .training-feedback.success {
-  background: #eef6ee;
-  color: #1f4d29;
+  background: var(--k-eef6ee);
+  color: var(--k-1f4d29);
 }
 
 .training-feedback.error {
-  background: #fff1ec;
-  color: #9a3412;
+  background: var(--k-fff1ec);
+  color: var(--k-9a3412);
 }
 
 .training-hint {
   padding: 10px 12px;
-  border-left: 3px solid #d4a72c;
-  background: #fdf7e3;
+  border-left: 3px solid var(--k-d4a72c);
+  background: var(--k-fdf7e3);
   line-height: 1.5;
 }
 
@@ -238,9 +238,9 @@
 
 .account-form input {
   padding: 8px 10px;
-  border: 1px solid #cdbb9a;
+  border: 1px solid var(--k-cdbb9a);
   border-radius: 6px;
-  background: #fffdf8;
+  background: var(--k-fffdf8);
   font: inherit;
 }
 
@@ -272,7 +272,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: #2459a9;
+  color: var(--k-2459a9);
   font: inherit;
   font-weight: 700;
   text-decoration: underline;
@@ -297,9 +297,9 @@
 
 .shogi-buttons button.danger,
 .shogi-buttons button.danger:first-child {
-  border-color: #9a3412;
-  background: #fff1ec;
-  color: #9a3412;
+  border-color: var(--k-9a3412);
+  background: var(--k-fff1ec);
+  color: var(--k-9a3412);
 }
 
 .account-links {

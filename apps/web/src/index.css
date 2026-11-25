@@ -3,8 +3,8 @@
 
 :root {
   font-family: 'DM Sans', sans-serif;
-  color: #292c26;
-  background: #f7f5ef;
+  color: var(--k-292c26);
+  background: var(--k-f7f5ef);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -38,11 +38,11 @@ select {
 }
 
 a:focus-visible {
-  outline: 2px solid #a84739;
+  outline: 2px solid var(--k-a84739);
   outline-offset: 4px;
 }
 
 ::selection {
-  color: #fffaf0;
-  background: #a84739;
+  color: var(--k-fffaf0);
+  background: var(--k-a84739);
 }
