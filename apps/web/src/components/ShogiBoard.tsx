@@ -1,932 +1,561 @@
-
 import './ShogiBoard.css'
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import type { Difficulty } from '../engine/ai'
+import { explainIllegalBoardMove, explainIllegalDrop, describeMove } from '../engine/explain'
+import { isCheck, newGame, playMove, resign, undo, type GameState } from '../engine/game'
+import { FILE_LABELS, formatMove, RANK_LABELS, squareLabel } from '../engine/notation'
+import {
+  JAPANESE_NAMES,
+  OWNER_LABEL,
+  OWNER_SHORT,
+  PIECE_KANJI,
+  PIECE_NAMES,
+  PIECE_TIPS,
+  pieceKanji,
+  pieceMovement,
+  pieceName,
+} from '../engine/pieces'
+import { PRACTICE_POSITIONS, type PracticePosition } from '../engine/positions'
+import {
+  findKing,
+  HAND_ORDER,
+  legalDrops,
+  legalMovesFrom,
+  otherOwner,
+  sameSquare,
+} from '../engine/rules'
+import type { GameResult, HandKind, Move, Owner, Piece, Square } from '../engine/types'
+import { useAiPlayer } from '../hooks/useAiPlayer'
 
-type PieceKind =
-  | 'king'
-  | 'rook'
-  | 'bishop'
-  | 'gold'
-  | 'silver'
-  | 'knight'
-  | 'lance'
-  | 'pawn'
+type Mode = 'ai' | 'local'
 
-type Owner = 'sente' | 'gote'
+type Selection =
+  | { type: 'square'; square: Square }
+  | { type: 'hand'; kind: HandKind }
+  | null
 
-type Piece = {
-  kind: PieceKind
-  owner: Owner
-  promoted?: boolean
+type PendingPromotion = { from: Square; to: Square }
+
+const DIFFICULTY_LABEL: Record<Difficulty, string> = {
+  easy: 'Fácil',
+  normal: 'Normal',
+  hard: 'Difícil',
 }
 
-type Square = {
-  row: number
-  col: number
-}
+const INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
-type Hands = Record<Owner, PieceKind[]>
+function resultMessage(result: GameResult): string {
+  const winner = result.winner ? OWNER_LABEL[result.winner] : ''
+  const loser = result.winner ? OWNER_LABEL[otherOwner(result.winner)] : ''
 
-type GameStatus = 'playing' | 'check' | 'checkmate' | 'stalemate'
-
-const pieceKanji: Record<PieceKind, string> = {
-  king: '玉',
-  rook: '飛',
-  bishop: '角',
-  gold: '金',
-  silver: '銀',
-  knight: '桂',
-  lance: '香',
-  pawn: '歩',
-}
-
-const pieceNames: Record<PieceKind, string> = {
-  king: 'rey',
-  rook: 'torre',
-  bishop: 'alfil',
-  gold: 'oro',
-  silver: 'plata',
-  knight: 'caballo',
-  lance: 'lanza',
-  pawn: 'peón',
-}
-
-const promotedKanji: Partial<Record<PieceKind, string>> = {
-  rook: '龍',
-  bishop: '馬',
-  silver: '全',
-  knight: '圭',
-  lance: '杏',
-  pawn: 'と',
-}
-
-const handOrder: PieceKind[] = [
-  'rook',
-  'bishop',
-  'gold',
-  'silver',
-  'knight',
-  'lance',
-  'pawn',
-]
-
-const fileCoordinates = [9, 8, 7, 6, 5, 4, 3, 2, 1]
-
-const rankCoordinates = [
-  '一', '二', '三', '四', '五', '六', '七', '八', '九',
-]
-
-function createInitialBoard(): (Piece | null)[][] {
-  const board: (Piece | null)[][] = Array.from(
-    { length: 9 },
-    () => Array(9).fill(null),
-  )
-
-  const backRow: PieceKind[] = [
-    'lance', 'knight', 'silver', 'gold', 'king',
-    'gold', 'silver', 'knight', 'lance',
-  ]
-
-  for (let col = 0; col < 9; col++) {
-    board[0][col] = { kind: backRow[col], owner: 'gote' }
-    board[2][col] = { kind: 'pawn', owner: 'gote' }
-    board[6][col] = { kind: 'pawn', owner: 'sente' }
-    board[8][col] = { kind: backRow[col], owner: 'sente' }
+  switch (result.reason) {
+    case 'checkmate':
+      return `¡Jaque mate! Gana ${winner}.`
+    case 'no-moves':
+      return `${loser} no tiene jugadas legales y pierde. Gana ${winner}.`
+    case 'repetition':
+      return 'Sennichite (千日手): la misma posición se ha repetido cuatro veces. La partida termina en tablas.'
+    case 'perpetual-check':
+      return `Jaque perpetuo: ${loser} repitió la posición dando jaque continuamente y pierde. Gana ${winner}.`
+    case 'resignation':
+      return `${loser} se rinde. Gana ${winner}.`
   }
-
-  board[1][1] = { kind: 'rook', owner: 'gote' }
-  board[1][7] = { kind: 'bishop', owner: 'gote' }
-  board[7][1] = { kind: 'bishop', owner: 'sente' }
-  board[7][7] = { kind: 'rook', owner: 'sente' }
-
-  return board
 }
 
-function ShogiPiece({ piece }: { piece: Piece }) {
-  const kanji = piece.promoted
-    ? promotedKanji[piece.kind] ?? pieceKanji[piece.kind]
-    : pieceKanji[piece.kind]
-
+function ShogiPiece({ piece, upsideDown }: { piece: Piece; upsideDown: boolean }) {
   return (
     <span
-      className={`shogi-piece ${piece.owner === 'gote' ? 'gote' : 'sente'}${piece.promoted ? ' promoted' : ''}`}
-      aria-label={`${piece.owner === 'sente' ? 'Sente' : 'Gote'} ${pieceNames[piece.kind]}${piece.promoted ? ', promocionada' : ''}`}
+      className={`shogi-piece${upsideDown ? ' upside-down' : ''}${piece.promoted ? ' promoted' : ''}`}
+      aria-hidden="true"
     >
-      {kanji}
+      {pieceKanji(piece)}
     </span>
   )
 }
 
-function otherOwner(owner: Owner): Owner {
-  return owner === 'sente' ? 'gote' : 'sente'
-}
-
-function isPromotable(piece: Piece): boolean {
-  return (
-    piece.promoted !== true &&
-    piece.kind !== 'king' &&
-    piece.kind !== 'gold'
-  )
-}
-
-function inPromotionZone(owner: Owner, row: number): boolean {
-  return owner === 'sente' ? row <= 2 : row >= 6
-}
-
-function mustPromote(piece: Piece, destinationRow: number): boolean {
-  if (piece.promoted) return false
-
-  const lastRow = piece.owner === 'sente' ? 0 : 8
-  const lastTwoRows =
-    piece.owner === 'sente'
-      ? destinationRow <= 1
-      : destinationRow >= 7
-
-  if (piece.kind === 'pawn' || piece.kind === 'lance') {
-    return destinationRow === lastRow
-  }
-
-  return piece.kind === 'knight' && lastTwoRows
-}
-
-function isGoldMove(
-  piece: Piece,
-  dr: number,
-  dc: number,
-): boolean {
-  const forward = piece.owner === 'sente' ? -1 : 1
-
-  return (
-    (dr === forward && Math.abs(dc) <= 1) ||
-    (dr === 0 && Math.abs(dc) === 1) ||
-    (dr === -forward && dc === 0)
-  )
-}
-
-function isValidMove(
-  board: (Piece | null)[][],
-  piece: Piece,
-  from: Square,
-  to: Square,
-): boolean {
-  if (
-    to.row < 0 || to.row > 8 ||
-    to.col < 0 || to.col > 8
-  ) return false
-
-  const dr = to.row - from.row
-  const dc = to.col - from.col
-  const forward = piece.owner === 'sente' ? -1 : 1
-  const absRow = Math.abs(dr)
-  const absCol = Math.abs(dc)
-  const destination = board[to.row][to.col]
-
-  if (dr === 0 && dc === 0) return false
-  if (destination?.owner === piece.owner) return false
-
-  // En shogi no se captura directamente al rey.
-  if (destination?.kind === 'king') return false
-
-  if (
-    piece.promoted &&
-    ['pawn', 'lance', 'knight', 'silver'].includes(piece.kind)
-  ) {
-    return isGoldMove(piece, dr, dc)
-  }
-
-  if (piece.kind === 'king') {
-    return absRow <= 1 && absCol <= 1
-  }
-
-  if (piece.kind === 'gold') {
-    return isGoldMove(piece, dr, dc)
-  }
-
-  if (piece.kind === 'pawn') {
-    return dr === forward && dc === 0
-  }
-
-  if (piece.kind === 'silver') {
-    return (
-      (dr === forward && absCol <= 1) ||
-      (dr === -forward && absCol === 1)
-    )
-  }
-
-  if (piece.kind === 'knight') {
-    return dr === forward * 2 && absCol === 1
-  }
-
-  if (piece.kind === 'lance' || piece.kind === 'rook') {
-    const straight =
-      (dc === 0 && dr !== 0) ||
-      (piece.kind === 'rook' && dr === 0 && dc !== 0)
-
-    if (!straight) {
-      return (
-        piece.kind === 'rook' &&
-        piece.promoted === true &&
-        absRow === 1 &&
-        absCol === 1
-      )
-    }
-
-    if (piece.kind === 'lance' && dr * forward <= 0) {
-      return false
-    }
-
-    const rowStep = Math.sign(dr)
-    const colStep = Math.sign(dc)
-    let r = from.row + rowStep
-    let c = from.col + colStep
-
-    while (r !== to.row || c !== to.col) {
-      if (board[r][c] !== null) return false
-      r += rowStep
-      c += colStep
-    }
-
-    return true
-  }
-
-  if (piece.kind === 'bishop') {
-    if (absRow === absCol) {
-      const rowStep = Math.sign(dr)
-      const colStep = Math.sign(dc)
-      let r = from.row + rowStep
-      let c = from.col + colStep
-
-      while (r !== to.row || c !== to.col) {
-        if (board[r][c] !== null) return false
-        r += rowStep
-        c += colStep
-      }
-
-      return true
-    }
-
-    return (
-      piece.promoted === true &&
-      absRow + absCol === 1
-    )
-  }
-
-  return false
-}
-
-function makeBoardMove(
-  board: (Piece | null)[][],
-  from: Square,
-  to: Square,
-): (Piece | null)[][] {
-  const nextBoard = board.map((row) => [...row])
-  nextBoard[to.row][to.col] = nextBoard[from.row][from.col]
-  nextBoard[from.row][from.col] = null
-  return nextBoard
-}
-
-function findKing(
-  board: (Piece | null)[][],
-  owner: Owner,
-): Square | null {
-  for (let row = 0; row < 9; row++) {
-    for (let col = 0; col < 9; col++) {
-      const piece = board[row][col]
-      if (piece?.kind === 'king' && piece.owner === owner) {
-        return { row, col }
-      }
-    }
-  }
-
-  return null
-}
-
-function isSquareAttacked(
-  board: (Piece | null)[][],
-  row: number,
-  col: number,
-  byOwner: Owner,
-): boolean {
-  const target = { row, col }
-
-  // La casilla objetivo se vacía para poder calcular ataques
-  // incluso cuando allí se encuentra el rey.
-  const attackBoard = board.map((boardRow) => [...boardRow])
-  attackBoard[row][col] = null
-
-  for (let fromRow = 0; fromRow < 9; fromRow++) {
-    for (let fromCol = 0; fromCol < 9; fromCol++) {
-      const piece = attackBoard[fromRow][fromCol]
-
-      if (!piece || piece.owner !== byOwner) continue
-
-      if (
-        isValidMove(
-          attackBoard,
-          piece,
-          { row: fromRow, col: fromCol },
-          target,
-        )
-      ) {
-        return true
-      }
-    }
-  }
-
-  return false
-}
-
-function isKingInCheck(
-  board: (Piece | null)[][],
-  owner: Owner,
-): boolean {
-  const king = findKing(board, owner)
-
-  if (!king) return true
-
-  return isSquareAttacked(
-    board,
-    king.row,
-    king.col,
-    otherOwner(owner),
-  )
-}
-
-function isLegalBoardMove(
-  board: (Piece | null)[][],
-  piece: Piece,
-  from: Square,
-  to: Square,
-): boolean {
-  if (!isValidMove(board, piece, from, to)) return false
-
-  const nextBoard = makeBoardMove(board, from, to)
-
-  return !isKingInCheck(nextBoard, piece.owner)
-}
-
-function canDropPiece(
-  board: (Piece | null)[][],
-  kind: PieceKind,
-  owner: Owner,
-  row: number,
-  col: number,
-): boolean {
-  if (board[row][col] !== null) return false
-
-  const lastRow = owner === 'sente' ? 0 : 8
-  const lastTwoRows = owner === 'sente' ? row <= 1 : row >= 7
-
-  if (
-    (kind === 'pawn' || kind === 'lance') &&
-    row === lastRow
-  ) return false
-
-  if (kind === 'knight' && lastTwoRows) return false
-
-  // Nifu: no se permiten dos peones propios sin promocionar
-  // en la misma columna.
-  if (kind === 'pawn') {
-    for (let r = 0; r < 9; r++) {
-      const piece = board[r][col]
-
-      if (
-        piece?.owner === owner &&
-        piece.kind === 'pawn' &&
-        !piece.promoted
-      ) {
-        return false
-      }
-    }
-  }
-
-  return true
-}
-
-function isLegalDrop(
-  board: (Piece | null)[][],
-  kind: PieceKind,
-  owner: Owner,
-  row: number,
-  col: number,
-): boolean {
-  if (!canDropPiece(board, kind, owner, row, col)) return false
-
-  const nextBoard = board.map((boardRow) => [...boardRow])
-  nextBoard[row][col] = { kind, owner }
-
-  return !isKingInCheck(nextBoard, owner)
-}
-
-type LegalAction = {
-  from?: Square
-  to: Square
-  drop?: PieceKind
-}
-
-function getLegalActions(
-  board: (Piece | null)[][],
-  owner: Owner,
-  hands: Hands,
-): LegalAction[] {
-  const actions: LegalAction[] = []
-
-  for (let row = 0; row < 9; row++) {
-    for (let col = 0; col < 9; col++) {
-      const piece = board[row][col]
-      if (!piece || piece.owner !== owner) continue
-
-      const from = { row, col }
-
-      for (let toRow = 0; toRow < 9; toRow++) {
-        for (let toCol = 0; toCol < 9; toCol++) {
-          const to = { row: toRow, col: toCol }
-
-          if (isLegalBoardMove(board, piece, from, to)) {
-            actions.push({ from, to })
-          }
-        }
-      }
-    }
-  }
-
-  // Comprobar también todas las colocaciones disponibles.
-  for (const kind of new Set(hands[owner])) {
-    for (let row = 0; row < 9; row++) {
-      for (let col = 0; col < 9; col++) {
-        if (isLegalDrop(board, kind, owner, row, col)) {
-          actions.push({ to: { row, col }, drop: kind })
-        }
-      }
-    }
-  }
-
-  return actions
-}
-
-function getGameStatus(
-  board: (Piece | null)[][],
-  owner: Owner,
-  hands: Hands,
-): GameStatus {
-  const inCheck = isKingInCheck(board, owner)
-  const actions = getLegalActions(board, owner, hands)
-
-  if (actions.length === 0) {
-    return inCheck ? 'checkmate' : 'stalemate'
-  }
-
-  return inCheck ? 'check' : 'playing'
-}
-
-function emptyHands(): Hands {
-  return { sente: [], gote: [] }
-}
-
-function createCheckTestPosition(): (Piece | null)[][] {
-  const board: (Piece | null)[][] = Array.from(
-    { length: 9 },
-    () => Array(9).fill(null),
-  )
-
-  // Sente's rook attacks Gote's king along the same file.
-  board[0][4] = { kind: 'king', owner: 'gote' }
-  board[4][4] = { kind: 'rook', owner: 'sente' }
-  board[8][4] = { kind: 'king', owner: 'sente' }
-
-  return board
-}
-
-function createCheckmateTestPosition(): (Piece | null)[][] {
-  const board: (Piece | null)[][] = Array.from(
-    { length: 9 },
-    () => Array(9).fill(null),
-  )
-
-  // Position de prueba: rey rojo en una esquina.
-  // Las piezas azules controlan sus tres casillas de escape
-  // y la torre da jaque por la columna.
-  board[0][0] = { kind: 'king', owner: 'gote' }
-  board[1][2] = { kind: 'rook', owner: 'sente' }
-  board[2][1] = { kind: 'gold', owner: 'sente' }
-  board[1][0] = { kind: 'gold', owner: 'sente' }
-  board[8][8] = { kind: 'king', owner: 'sente' }
-
-  return board
-}
-
 export default function ShogiBoard() {
-  const [board, setBoard] = useState<(Piece | null)[][]>(
-    createInitialBoard,
+  const [game, setGame] = useState<GameState>(() => newGame())
+  const [selection, setSelection] = useState<Selection>(null)
+  const [pendingPromotion, setPendingPromotion] = useState<PendingPromotion | null>(null)
+  const [mode, setMode] = useState<Mode>('ai')
+  const [humanSide, setHumanSide] = useState<Owner>('sente')
+  const [difficulty, setDifficulty] = useState<Difficulty>('normal')
+  const [showHints, setShowHints] = useState(true)
+  const [message, setMessage] = useState(
+    'Juegas con Sente (azul). Selecciona una pieza para ver sus movimientos posibles.',
   )
-  const [selectedSquare, setSelectedSquare] =
-    useState<Square | null>(null)
-  const [currentTurn, setCurrentTurn] = useState<Owner>('sente')
-  const [pendingPromotion, setPendingPromotion] =
-    useState<Square | null>(null)
-  const [hands, setHands] = useState<Hands>(emptyHands)
-  const [selectedHandPiece, setSelectedHandPiece] =
-    useState<PieceKind | null>(null)
-  const [message, setMessage] = useState('')
+  const [practice, setPractice] = useState<PracticePosition | null>(null)
+  const { requestMove, cancel } = useAiPlayer()
 
-  const gameStatus = getGameStatus(board, currentTurn, hands)
-  const gameOver =
-    gameStatus === 'checkmate' || gameStatus === 'stalemate'
+  const { position, result } = game
+  const aiSide = otherOwner(humanSide)
+  const aiActive = mode === 'ai' && practice === null
+  const isHumanTurn = !aiActive || position.turn === humanSide
+  const thinking = aiActive && !result && position.turn === aiSide
+  const inCheck = isCheck(game)
+  const flipped = aiActive && humanSide === 'gote'
+  const lastEntry = game.history.at(-1)
+  const lastMove = lastEntry?.move
 
-  function finishTurn() {
+  const targets = useMemo<Square[]>(() => {
+    if (!selection || result) return []
+    if (selection.type === 'hand') return legalDrops(position, selection.kind)
+    return legalMovesFrom(position, selection.square).map((move) => move.to)
+  }, [selection, position, result])
+
+  const checkedKing = inCheck ? findKing(position.board, position.turn) : null
+
+  const kifu = useMemo(
+    () =>
+      game.history.map((entry, index) => {
+        const previous = index > 0 ? game.history[index - 1].move.to : null
+        return formatMove(entry.before, entry.move, previous)
+      }),
+    [game.history],
+  )
+
+  function commit(current: GameState, move: Move, byMachine: boolean) {
+    const next = playMove(current, move)
+    const notation = formatMove(current.position, move, current.history.at(-1)?.move.to ?? null)
+    let text = `${byMachine ? 'La máquina juega' : 'Jugada'} ${notation}. ${describeMove(current.position, move)}`
+
+    if (next.result) {
+      text = resultMessage(next.result)
+      if (practice?.goal === 'mate' && next.result.reason === 'checkmate') {
+        text = `¡Ejercicio resuelto! ${text}`
+      }
+    } else if (practice?.goal === 'mate') {
+      text += ' No es mate todavía: deshaz la jugada e inténtalo de nuevo.'
+    }
+
+    setGame(next)
+    setSelection(null)
     setPendingPromotion(null)
-    setSelectedSquare(null)
-    setSelectedHandPiece(null)
-    setCurrentTurn((turn) => otherOwner(turn))
+    setMessage(text)
   }
 
-  function loadPosition(
-    nextBoard: (Piece | null)[][],
-    nextTurn: Owner,
-    nextMessage: string,
-  ) {
-    setBoard(nextBoard)
-    setHands(emptyHands())
-    setCurrentTurn(nextTurn)
-    setSelectedSquare(null)
-    setSelectedHandPiece(null)
+  // El efecto de la máquina usa siempre la versión más reciente de `commit`.
+  const commitRef = useRef(commit)
+  useEffect(() => {
+    commitRef.current = commit
+  })
+
+  // Turno de la máquina.
+  useEffect(() => {
+    if (!aiActive || result || position.turn !== aiSide) return
+
+    return requestMove(position, difficulty, (move) => {
+      if (move) commitRef.current(game, move, true)
+    })
+  }, [game, position, result, aiActive, aiSide, difficulty, requestMove])
+
+  function startGame(nextPractice: PracticePosition | null, note?: string) {
+    cancel()
+    const start = nextPractice ? nextPractice.create() : undefined
+    setGame(newGame(start))
+    setPractice(nextPractice)
+    setSelection(null)
     setPendingPromotion(null)
-    setMessage(nextMessage)
-  }
-
-  function restartGame() {
-    loadPosition(createInitialBoard(), 'sente', 'Partida reiniciada.')
-  }
-
-  function startCheckTest() {
-    loadPosition(
-      createCheckTestPosition(),
-      'gote',
-      'Prueba de jaque: el rey rojo está amenazado por la torre azul.',
+    setMessage(
+      note ??
+        (nextPractice
+          ? nextPractice.description
+          : 'Nueva partida. Sente (azul) mueve primero.'),
     )
   }
 
-  function startCheckmateTest() {
-    const testBoard = createCheckmateTestPosition()
-    const status = getGameStatus(testBoard, 'gote', emptyHands())
+  function handleUndo() {
+    if (game.history.length === 0) return
+    cancel()
+    // Contra la máquina se deshace también su respuesta.
+    const plies = aiActive && position.turn === humanSide && game.history.length >= 2 ? 2 : 1
+    setGame(undo(game, plies))
+    setSelection(null)
+    setPendingPromotion(null)
+    setMessage(plies === 2 ? 'Se han deshecho tu última jugada y la respuesta de la máquina.' : 'Jugada deshecha.')
+  }
 
-    loadPosition(
-      testBoard,
-      'gote',
-      status === 'checkmate'
-        ? 'Posición de prueba de jaque mate cargada.'
-        : 'Posición de prueba cargada. Comprueba el estado que muestra el tablero.',
+  function handleResign() {
+    if (result) return
+    const loser = aiActive ? humanSide : position.turn
+    cancel()
+    const next = resign(game, loser)
+    setGame(next)
+    setSelection(null)
+    setPendingPromotion(null)
+    setMessage(resultMessage(next.result!))
+  }
+
+  function selectHandPiece(kind: HandKind) {
+    if (pendingPromotion || result || !isHumanTurn) return
+
+    if (selection?.type === 'hand' && selection.kind === kind) {
+      setSelection(null)
+      return
+    }
+
+    const count = legalDrops(position, kind).length
+    setSelection({ type: 'hand', kind })
+    setMessage(
+      count > 0
+        ? `${PIECE_KANJI[kind]} (${PIECE_NAMES[kind]}) seleccionado: puedes colocarlo en ${count} casillas.`
+        : `${PIECE_KANJI[kind]} (${PIECE_NAMES[kind]}): ahora mismo no hay ninguna casilla donde colocarlo legalmente.`,
     )
+  }
+
+  function handleSquare(square: Square) {
+    if (result || pendingPromotion || !isHumanTurn) return
+
+    const clicked = position.board[square.row][square.col]
+
+    if (selection?.type === 'hand') {
+      const reason = explainIllegalDrop(position, selection.kind, square)
+      if (reason) {
+        if (clicked?.owner === position.turn) {
+          setSelection({ type: 'square', square })
+          setMessage(describeSelection(clicked))
+          return
+        }
+        setMessage(reason)
+        return
+      }
+      commit(game, { type: 'drop', piece: selection.kind, to: square }, false)
+      return
+    }
+
+    if (selection?.type === 'square') {
+      const from = selection.square
+
+      if (sameSquare(from, square)) {
+        setSelection(null)
+        setMessage('Selección cancelada.')
+        return
+      }
+
+      if (clicked?.owner === position.turn) {
+        setSelection({ type: 'square', square })
+        setMessage(describeSelection(clicked))
+        return
+      }
+
+      const options = legalMovesFrom(position, from).filter((move) => sameSquare(move.to, square))
+
+      if (options.length === 0) {
+        setMessage(explainIllegalBoardMove(position, from, square) ?? 'Movimiento no válido.')
+        return
+      }
+
+      if (options.length === 1) {
+        commit(game, options[0], false)
+        return
+      }
+
+      setPendingPromotion({ from, to: square })
+      setMessage('Tu pieza entra, sale o se mueve dentro de la zona de promoción. ¿Quieres promocionarla?')
+      return
+    }
+
+    if (clicked?.owner === position.turn) {
+      setSelection({ type: 'square', square })
+      setMessage(describeSelection(clicked))
+    } else if (clicked) {
+      setMessage(`Esa pieza es de ${OWNER_LABEL[clicked.owner]}. Ahora juega ${OWNER_LABEL[position.turn]}.`)
+    }
+  }
+
+  function describeSelection(piece: Piece): string {
+    return `${pieceKanji(piece)} · ${pieceName(piece)}. ${pieceMovement(piece)}`
   }
 
   function choosePromotion(promote: boolean) {
     if (!pendingPromotion) return
-
-    const nextBoard = board.map((row) => [...row])
-
-    if (promote) {
-      const { row, col } = pendingPromotion
-      const piece = nextBoard[row][col]
-
-      if (piece) {
-        nextBoard[row][col] = { ...piece, promoted: true }
-      }
-    }
-
-    setBoard(nextBoard)
-
-    const opponent = otherOwner(currentTurn)
-    const givesCheck = isKingInCheck(nextBoard, opponent)
-
-    setMessage(
-      givesCheck
-        ? `${promote ? 'Pieza promocionada. ' : ''}¡Jaque a ${opponent === 'sente' ? 'Sente' : 'Gote'}!`
-        : promote
-          ? 'Pieza promocionada.'
-          : 'Movimiento completado.',
-    )
-
-    finishTurn()
+    const { from, to } = pendingPromotion
+    commit(game, { type: 'move', from, to, promote }, false)
   }
 
-  function selectHandPiece(kind: PieceKind) {
-    if (pendingPromotion || gameOver) return
-
-    setSelectedSquare(null)
-    setSelectedHandPiece(kind)
-    setMessage(
-      `Seleccionaste ${pieceKanji[kind]} (${pieceNames[kind]}). Elige una casilla vacía.`,
-    )
-  }
-
-  function dropHandPiece(row: number, col: number): boolean {
-    if (!selectedHandPiece) return false
-
-    if (!isLegalDrop(board, selectedHandPiece, currentTurn, row, col)) {
-      setMessage(
-        canDropPiece(board, selectedHandPiece, currentTurn, row, col)
-          ? 'Movimiento no válido: no puedes dejar a tu rey en jaque.'
-          : 'No puedes colocar esa pieza en esa casilla.',
-      )
-      return true
-    }
-
-    const kind = selectedHandPiece
-    const nextBoard = board.map((boardRow) => [...boardRow])
-    nextBoard[row][col] = { kind, owner: currentTurn }
-
-    const nextHands = { ...hands }
-    const pieces = [...nextHands[currentTurn]]
-    const index = pieces.indexOf(kind)
-
-    if (index !== -1) pieces.splice(index, 1)
-    nextHands[currentTurn] = pieces
-
-    setBoard(nextBoard)
-    setHands(nextHands)
-
-    const opponent = otherOwner(currentTurn)
-    const givesCheck = isKingInCheck(nextBoard, opponent)
-
-    setMessage(
-      givesCheck
-        ? `Pieza colocada. ¡Jaque a ${opponent === 'sente' ? 'Sente' : 'Gote'}!`
-        : 'Pieza colocada en el tablero.',
-    )
-
-    finishTurn()
-    return true
-  }
-
-  function handleSquareClick(row: number, col: number) {
-    if (gameOver || pendingPromotion) return
-
-    if (selectedHandPiece) {
-      dropHandPiece(row, col)
-      return
-    }
-
-    const clickedPiece = board[row][col]
-
-    if (selectedSquare === null) {
-      if (clickedPiece?.owner === currentTurn) {
-        setSelectedSquare({ row, col })
-        setMessage('')
-      }
-      return
-    }
-
-    const { row: selectedRow, col: selectedCol } = selectedSquare
-    const selectedPiece = board[selectedRow][selectedCol]
-
-    if (!selectedPiece) {
-      setSelectedSquare(null)
-      return
-    }
-
-    if (selectedRow === row && selectedCol === col) {
-      setSelectedSquare(null)
-      return
-    }
-
-    if (clickedPiece?.owner === currentTurn) {
-      setSelectedSquare({ row, col })
-      return
-    }
-
-    const from = { row: selectedRow, col: selectedCol }
-    const to = { row, col }
-
-    if (!isLegalBoardMove(board, selectedPiece, from, to)) {
-      setMessage(
-        isValidMove(board, selectedPiece, from, to)
-          ? 'Movimiento no válido: no puedes dejar a tu rey en jaque.'
-          : 'Movimiento no válido.',
-      )
-      return
-    }
-
-    const nextBoard = makeBoardMove(board, from, to)
-    const capturedPiece = clickedPiece
-
-    setBoard(nextBoard)
-
-    if (capturedPiece) {
-      setHands((currentHands) => ({
-        ...currentHands,
-        [currentTurn]: [
-          ...currentHands[currentTurn],
-          { ...capturedPiece, promoted: false }.kind,
-        ],
-      }))
-    }
-
-    const opponent = otherOwner(currentTurn)
-    const givesCheck = isKingInCheck(nextBoard, opponent)
-
-    setMessage(
-      givesCheck
-        ? `¡Jaque a ${opponent === 'sente' ? 'Sente' : 'Gote'}!${capturedPiece ? ' Pieza capturada y añadida a tu mano.' : ''}`
-        : capturedPiece
-          ? 'Pieza capturada y añadida a tu mano.'
-          : '',
-    )
-
-    setSelectedSquare(null)
-
-    const canPromote =
-      isPromotable(selectedPiece) &&
-      (
-        inPromotionZone(selectedPiece.owner, selectedRow) ||
-        inPromotionZone(selectedPiece.owner, row)
-      )
-
-    const forcedPromotion = mustPromote(selectedPiece, row)
-
-    if (canPromote || forcedPromotion) {
-      setPendingPromotion(to)
-    } else {
-      finishTurn()
+  function handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      setSelection(null)
+      setPendingPromotion(null)
     }
   }
 
-  const pendingPiece = pendingPromotion
-    ? board[pendingPromotion.row][pendingPromotion.col]
-    : null
+  const statusText = result
+    ? resultMessage(result)
+    : thinking
+      ? 'La máquina está pensando…'
+      : `Turno de ${OWNER_LABEL[position.turn]}${inCheck ? ' — ¡JAQUE!' : ''}`
 
-  const promotionIsForced =
-    pendingPiece != null &&
-    pendingPromotion != null &&
-    mustPromote(pendingPiece, pendingPromotion.row)
+  const rows = flipped ? [...INDICES].reverse() : INDICES
+  const cols = flipped ? [...INDICES].reverse() : INDICES
 
-  const gameStatusMessage =
-    gameStatus === 'checkmate'
-      ? `¡JAQUE MATE! Gana ${currentTurn === 'sente' ? 'Gote (rojo)' : 'Sente (azul)'}.`
-      : gameStatus === 'stalemate'
-        ? 'Fin de partida: no hay movimientos legales y el rey no está en jaque.'
-        : gameStatus === 'check'
-          ? `¡JAQUE a ${currentTurn === 'sente' ? 'Sente (azul)' : 'Gote (rojo)'}!`
-          : ''
+  const selectedPiece =
+    selection?.type === 'square' ? position.board[selection.square.row][selection.square.col] : null
 
   function renderHand(owner: Owner) {
-    const isCurrentPlayer = owner === currentTurn
-    const title = owner === 'sente' ? 'Mano de Sente' : 'Mano de Gote'
-    const pieces = hands[owner]
+    const hand = position.hands[owner]
+    const isTurn = owner === position.turn
+    const canUse = isTurn && isHumanTurn && !result && !pendingPromotion
+    const total = HAND_ORDER.reduce((sum, kind) => sum + hand[kind], 0)
 
     return (
-      <div className={`shogi-hand ${owner}`} aria-label={title}>
-        <strong>{title}</strong>
+      <div className={`shogi-hand ${owner}${isTurn && !result ? ' active' : ''}`}>
+        <strong>
+          {owner === 'sente' ? '☗' : '☖'} Mano de {OWNER_SHORT[owner]}
+          {aiActive && owner === aiSide ? ' · máquina' : ''}
+        </strong>
 
         <div className="shogi-hand-pieces">
-          {handOrder.map((kind) => {
-            const count = pieces.filter((piece) => piece === kind).length
+          {HAND_ORDER.map((kind) => {
+            const count = hand[kind]
             if (count === 0) return null
-
-            const isSelected =
-              isCurrentPlayer && selectedHandPiece === kind
+            const isSelected = isTurn && selection?.type === 'hand' && selection.kind === kind
 
             return (
               <button
                 type="button"
                 key={kind}
                 className={`shogi-hand-piece${isSelected ? ' selected' : ''}`}
-                disabled={!isCurrentPlayer || gameOver || Boolean(pendingPromotion)}
+                disabled={!canUse}
                 onClick={() => selectHandPiece(kind)}
-                aria-label={`${pieceKanji[kind]}, cantidad ${count}`}
+                aria-pressed={isSelected}
+                aria-label={`${PIECE_NAMES[kind]} en la mano, cantidad ${count}`}
               >
-                <span>{pieceKanji[kind]}</span>
-                {count > 1 && <small>×{count}</small>}
+                <span aria-hidden="true">{PIECE_KANJI[kind]}</span>
+                {count > 1 && <small aria-hidden="true">×{count}</small>}
               </button>
             )
           })}
 
-          {pieces.length === 0 && (
-            <span className="shogi-hand-empty">Sin piezas</span>
-          )}
+          {total === 0 && <span className="shogi-hand-empty">Sin piezas</span>}
         </div>
       </div>
     )
   }
 
   return (
-    <section className="shogi-game" aria-label="Tablero de shōgi">
-      <p className="shogi-turn" aria-live="polite">
-        {gameOver
-          ? gameStatusMessage
-          : `Turno de: ${currentTurn === 'sente' ? 'Sente (azul)' : 'Gote (rojo)'}`}
-        {!gameOver && gameStatus === 'check' && ' — ¡JAQUE!'}
+    <section className="shogi-game" aria-label="Partida de shōgi" onKeyDown={handleKeyDown}>
+      <p className={`shogi-turn${inCheck && !result ? ' in-check' : ''}${result ? ' finished' : ''}`} aria-live="polite">
+        {statusText}
       </p>
-
-      <div className="shogi-game-controls">
-        <button type="button" onClick={startCheckTest}>
-          Probar jaque
-        </button>
-        <button type="button" onClick={startCheckmateTest}>
-          Probar jaque mate
-        </button>
-        <button type="button" onClick={restartGame}>
-          Reiniciar partida
-        </button>
-      </div>
 
       <div className="shogi-layout">
         <div className="shogi-board-column">
-          {renderHand('gote')}
+          {renderHand(flipped ? 'sente' : 'gote')}
 
           <div className="shogi-board-coordinate-frame">
             <div className="shogi-file-coordinates" aria-hidden="true">
-              {fileCoordinates.map((file) => (
-                <span key={file}>{file}</span>
+              {cols.map((col) => (
+                <span key={col}>{FILE_LABELS[col]}</span>
               ))}
             </div>
 
             <div className="shogi-board-and-ranks">
               <div className="shogi-rank-coordinates" aria-hidden="true">
-                {rankCoordinates.map((rank) => (
-                  <span key={rank}>{rank}</span>
+                {rows.map((row) => (
+                  <span key={row}>{RANK_LABELS[row]}</span>
                 ))}
               </div>
 
-              <div className="shogi-grid" role="grid" aria-label="Tablero de shōgi">
-                {board.map((row, rowIndex) =>
-                  row.map((piece, colIndex) => {
-                    const isSelected =
-                      selectedSquare?.row === rowIndex &&
-                      selectedSquare?.col === colIndex
+              <div className="shogi-grid" role="grid" aria-label="Tablero de 9 por 9">
+                {rows.map((row) => (
+                  <div className="shogi-row" role="row" key={row}>
+                    {cols.map((col) => {
+                      const square = { row, col }
+                      const piece = position.board[row][col]
+                      const isSelected = selection?.type === 'square' && sameSquare(selection.square, square)
+                      const isTarget = showHints && targets.some((t) => sameSquare(t, square))
+                      const isLast =
+                        lastMove !== undefined &&
+                        (sameSquare(lastMove.to, square) ||
+                          (lastMove.type === 'move' && sameSquare(lastMove.from, square)))
+                      const isChecked = checkedKing !== null && sameSquare(checkedKing, square)
+                      const isPending = pendingPromotion !== null && sameSquare(pendingPromotion.to, square)
 
-                    const selectedColor = isSelected
-                      ? piece?.owner === 'sente'
-                        ? 'selected-sente'
-                        : 'selected-gote'
-                      : ''
+                      const classes = [
+                        'shogi-square',
+                        isSelected && `selected-${position.turn}`,
+                        isTarget && (piece ? 'capture-hint' : 'move-hint'),
+                        isLast && 'last-move',
+                        isChecked && 'in-check',
+                        isPending && 'pending',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')
 
-                    return (
-                      <div
-                        className={`shogi-square ${selectedColor}`}
-                        onClick={() => handleSquareClick(rowIndex, colIndex)}
-                        role="gridcell"
-                        key={`${rowIndex}-${colIndex}`}
-                        aria-label={`Fila ${rankCoordinates[rowIndex]}, columna ${fileCoordinates[colIndex]}${
-                          piece ? `, pieza ${pieceKanji[piece.kind]}` : ', vacía'
-                        }`}
-                      >
-                        {piece && <ShogiPiece piece={piece} />}
-                      </div>
-                    )
-                  }),
-                )}
+                      const label = `${squareLabel(square)}, ${
+                        piece ? `${pieceName(piece)} de ${OWNER_SHORT[piece.owner]}` : 'vacía'
+                      }${isTarget ? ', destino posible' : ''}${isChecked ? ', rey en jaque' : ''}`
+
+                      return (
+                        <button
+                          type="button"
+                          role="gridcell"
+                          className={classes}
+                          key={col}
+                          onClick={() => handleSquare(square)}
+                          aria-label={label}
+                          aria-selected={isSelected}
+                        >
+                          {piece && (
+                            <ShogiPiece piece={piece} upsideDown={(piece.owner === 'gote') !== flipped} />
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {renderHand('sente')}
+          {renderHand(flipped ? 'gote' : 'sente')}
         </div>
 
-        <aside className="shogi-side-panel" aria-label="Acciones e instrucciones">
+        <aside className="shogi-side-panel" aria-label="Información y controles">
           <div className="shogi-panel-section">
-            <h3>Estado de la partida</h3>
-
-            <p className="shogi-message" aria-live="polite">
-              {gameOver ? gameStatusMessage : message || (
-                gameStatus === 'check'
-                  ? gameStatusMessage
-                  : 'Selecciona una pieza del tablero o de tu mano para comenzar.'
-              )}
-            </p>
+            <h3>Explicación</h3>
+            <p className="shogi-message" aria-live="polite">{message}</p>
           </div>
 
-          {pendingPromotion && pendingPiece && (
-            <div
-              className="promotion-choice shogi-panel-section"
-              role="group"
-              aria-label="Elegir promoción"
-            >
+          {pendingPromotion && (
+            <div className="promotion-choice shogi-panel-section" role="group" aria-label="Elegir promoción">
               <h3>Promoción</h3>
-
-              <p>
-                ¿Quieres promocionar esta pieza?
-                {promotionIsForced && ' La promoción es obligatoria.'}
-              </p>
-
+              {(() => {
+                const piece = position.board[pendingPromotion.from.row][pendingPromotion.from.col]
+                if (!piece) return null
+                const promoted = { ...piece, promoted: true }
+                return (
+                  <p>
+                    <span className="promotion-preview" aria-hidden="true">
+                      {pieceKanji(piece)} → <em>{pieceKanji(promoted)}</em>
+                    </span>
+                    <strong>{capitalize(pieceName(promoted))}</strong>: {pieceMovement(promoted)}
+                  </p>
+                )
+              })()}
               <div className="promotion-buttons">
                 <button type="button" onClick={() => choosePromotion(true)}>
                   Promocionar
                 </button>
-
-                {!promotionIsForced && (
-                  <button
-                    type="button"
-                    className="secondary-promotion"
-                    onClick={() => choosePromotion(false)}
-                  >
-                    No promocionar
-                  </button>
-                )}
+                <button type="button" className="secondary" onClick={() => choosePromotion(false)}>
+                  No promocionar
+                </button>
               </div>
             </div>
           )}
+
+          {selectedPiece && !pendingPromotion && (
+            <div className="shogi-panel-section piece-info">
+              <div className="piece-info-head">
+                <span className={`piece-info-kanji${selectedPiece.promoted ? ' promoted' : ''}`} aria-hidden="true">
+                  {pieceKanji(selectedPiece)}
+                </span>
+                <div>
+                  <h3>{capitalize(pieceName(selectedPiece))}</h3>
+                  <small>{JAPANESE_NAMES[selectedPiece.kind]}{selectedPiece.promoted ? ' (promocionada)' : ''}</small>
+                </div>
+              </div>
+              <p>{PIECE_TIPS[selectedPiece.kind]}</p>
+              <p className="muted">{targets.length} destinos posibles.</p>
+            </div>
+          )}
+
+          <div className="shogi-panel-section shogi-controls">
+            <h3>Partida</h3>
+
+            <label>
+              Modo
+              <select
+                value={mode}
+                onChange={(event) => {
+                  setMode(event.target.value as Mode)
+                  setPractice(null)
+                }}
+              >
+                <option value="ai">Contra la máquina</option>
+                <option value="local">Dos jugadores (mismo dispositivo)</option>
+              </select>
+            </label>
+
+            {mode === 'ai' && (
+              <>
+                <label>
+                  Juegas con
+                  <select
+                    value={humanSide}
+                    onChange={(event) => {
+                      const side = event.target.value as Owner
+                      setHumanSide(side)
+                      startGame(null, `Nueva partida: juegas con ${OWNER_LABEL[side]}.${side === 'gote' ? ' La máquina mueve primero.' : ''}`)
+                    }}
+                  >
+                    <option value="sente">Sente (azul, empieza)</option>
+                    <option value="gote">Gote (rojo)</option>
+                  </select>
+                </label>
+
+                <label>
+                  Dificultad
+                  <select value={difficulty} onChange={(event) => setDifficulty(event.target.value as Difficulty)}>
+                    {(Object.keys(DIFFICULTY_LABEL) as Difficulty[]).map((level) => (
+                      <option value={level} key={level}>
+                        {DIFFICULTY_LABEL[level]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            )}
+
+            <label className="checkbox">
+              <input type="checkbox" checked={showHints} onChange={(event) => setShowHints(event.target.checked)} />
+              Mostrar jugadas posibles
+            </label>
+
+            <div className="shogi-buttons">
+              <button type="button" onClick={() => startGame(null)}>Nueva partida</button>
+              <button type="button" onClick={handleUndo} disabled={game.history.length === 0}>Deshacer</button>
+              <button type="button" onClick={handleResign} disabled={result !== null}>Rendirse</button>
+            </div>
+          </div>
+
+          <div className="shogi-panel-section">
+            <h3>Posiciones de práctica</h3>
+            <div className="practice-list">
+              {PRACTICE_POSITIONS.map((entry) => (
+                <button
+                  type="button"
+                  key={entry.id}
+                  className={practice?.id === entry.id ? 'active' : ''}
+                  onClick={() => startGame(entry)}
+                >
+                  {entry.goal === 'mate' ? '詰 ' : ''}
+                  {entry.title}
+                </button>
+              ))}
+            </div>
+            {practice && <p className="muted practice-note">Modo práctica: tú mueves ambos bandos.</p>}
+          </div>
+
+          <div className="shogi-panel-section">
+            <h3>Registro (kifu)</h3>
+            {kifu.length === 0 ? (
+              <p className="muted">Todavía no hay jugadas.</p>
+            ) : (
+              <ol className="kifu">
+                {kifu.map((text, index) => (
+                  <li key={index}>{text}</li>
+                ))}
+              </ol>
+            )}
+          </div>
         </aside>
       </div>
     </section>
   )
+}
+
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1)
 }

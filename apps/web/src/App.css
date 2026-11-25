@@ -105,12 +105,6 @@
   font-size: 19px;
 }
 
-.nav-soon {
-  margin-left: auto;
-  font-size: 9px;
-  color: var(--muted);
-}
-
 .sidebar-bottom {
   margin-top: auto;
   padding: 22px 13px 0;
@@ -545,10 +539,6 @@
 
   .nav-icon {
     font-size: 16px;
-  }
-
-  .nav-soon {
-    display: none;
   }
 
   .main-content {

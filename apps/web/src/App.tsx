@@ -1,13 +1,27 @@
 
 import './App.css'
+import { useEffect, useState } from 'react'
+import PieceGuide from './components/PieceGuide'
 import ShogiBoard from './components/ShogiBoard'
 
 const sections = [
-  { icon: '⌂', label: 'Inicio', active: true },
-  { icon: '書', label: 'Aprender', active: false },
-  { icon: '棋', label: 'Practicar', active: false },
-  { icon: '対', label: 'Jugar', active: false },
+  { icon: '⌂', label: 'Inicio', href: '#inicio' },
+  { icon: '書', label: 'Aprender', href: '#piezas' },
+  { icon: '棋', label: 'Practicar', href: '#secciones' },
+  { icon: '対', label: 'Jugar', href: '#tablero' },
 ]
+
+function useHash(): string {
+  const [hash, setHash] = useState(() => window.location.hash || '#inicio')
+
+  useEffect(() => {
+    const update = () => setHash(window.location.hash || '#inicio')
+    window.addEventListener('hashchange', update)
+    return () => window.removeEventListener('hashchange', update)
+  }, [])
+
+  return hash
+}
 
 const features = [
   {
@@ -16,24 +30,29 @@ const features = [
     description: 'Conoce cada pieza y descubre cómo se mueve por el tablero.',
     icon: '駒',
     action: 'Explorar piezas',
+    href: '#piezas',
   },
   {
     number: '02',
     title: 'Practica movimientos',
-    description: 'Resuelve ejercicios y mejora tu comprensión del juego.',
+    description: 'Resuelve posiciones de práctica: jaques, mates en una, promoción, nifu y uchifuzume.',
     icon: '歩',
     action: 'Empezar a practicar',
+    href: '#tablero',
   },
   {
     number: '03',
     title: 'Juega una partida',
-    description: 'Pon en práctica lo aprendido, movimiento a movimiento.',
+    description: 'Juega contra la máquina en tres niveles o contra un amigo en el mismo dispositivo.',
     icon: '王',
-    action: 'Próximamente',
+    action: 'Jugar ahora',
+    href: '#tablero',
   },
 ]
 
 function App() {
+  const hash = useHash()
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -48,14 +67,12 @@ function App() {
           {sections.map((section) => (
             <a
               key={section.label}
-              className={`nav-link ${section.active ? 'active' : ''}`}
-              href={section.active ? '#inicio' : '#secciones'}
+              className={`nav-link ${hash === section.href ? 'active' : ''}`}
+              href={section.href}
+              aria-current={hash === section.href ? 'page' : undefined}
             >
               <span className="nav-icon" aria-hidden="true">{section.icon}</span>
               <span>{section.label}</span>
-              {section.label === 'Jugar' && (
-                <span className="nav-soon">Pronto</span>
-              )}
             </a>
           ))}
         </nav>
@@ -97,7 +114,7 @@ function App() {
             </p>
 
             <div className="hero-actions">
-              <a className="button-primary" href="#secciones">
+              <a className="button-primary" href="#piezas">
                 Comenzar a aprender <span aria-hidden="true">↗</span>
               </a>
               <span className="hero-note">Sin prisa. Movimiento a movimiento.</span>
@@ -148,7 +165,7 @@ function App() {
                 <p>{feature.description}</p>
                 <a
                   className="feature-action"
-                  href="#secciones"
+                  href={feature.href}
                   aria-label={`${feature.action}: ${feature.title}`}
                 >
                   {feature.action} <span aria-hidden="true">→</span>
@@ -158,18 +175,37 @@ function App() {
           </div>
         </section>
 
+        <section className="board-section" id="piezas">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">LAS PIEZAS</span>
+              <h2>Cómo se mueve cada pieza</h2>
+            </div>
+            <span className="section-counter">8 + 6</span>
+          </div>
+
+          <p className="board-intro">
+            Cada diagrama muestra la pieza vista desde tu lado (Sente): arriba
+            es hacia delante. Las casillas oscuras se alcanzan de un paso; las
+            claras, a cualquier distancia mientras el camino esté libre.
+          </p>
+
+          <PieceGuide />
+        </section>
+
         <section className="board-section" id="tablero">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">TU PRIMER TABLERO</span>
-              <h2>Conoce el campo de juego</h2>
+              <span className="eyebrow">TABLERO</span>
+              <h2>Juega y practica</h2>
             </div>
             <span className="section-counter">9 × 9</span>
           </div>
 
           <p className="board-intro">
-            Cada partida comienza aquí. Familiarízate con las piezas y su
-            posición inicial antes de dar tu primer movimiento.
+            Selecciona una pieza para ver adónde puede ir. Si intentas un
+            movimiento ilegal, el panel te explica por qué. Puedes jugar contra
+            la máquina, contra otra persona o cargar posiciones de práctica.
           </p>
 
           <ShogiBoard />

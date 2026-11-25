@@ -1,50 +1,41 @@
 # Proyecto Shogi — Nota de continuidad
 
 ## Estado actual
-- Proyecto React + TypeScript + Vite.
-- Frontend: apps/web
-- Componente principal: apps/web/src/components/ShogiBoard.tsx
-- Estilos: apps/web/src/components/ShogiBoard.css
-- Dependencias actuales: React y React DOM.
-- No se ha instalado ningún motor de shogi en el proyecto.
-- No se han modificado los archivos originales durante la investigación.
+- Proyecto React + TypeScript + Vite en `apps/web`.
+- Motor de reglas propio en `apps/web/src/engine/`, sin dependencias externas
+  y con tests en Vitest (`npm test`). Incluye perft hasta profundidad 3
+  (30 / 900 / 25 470), que coincide con los valores de referencia.
+- La interfaz (`components/ShogiBoard.tsx`) solo usa el motor; no contiene reglas.
+- IA propia (negamax + alfa-beta) en un Web Worker, con niveles fácil, normal y difícil.
+- CI en `.github/workflows/web.yml`: lint, tests y build.
 
-## Objetivo
-Conservar la interfaz actual y mejorar la lógica del shogi y el modo educativo.
-El modo educativo debe poder explicar movimientos, jaque, jaque mate,
-promoción y colocaciones de piezas desde la mano.
+## Decisión sobre bibliotecas externas
+Se descartaron @huguzturk/shogijs y shogiops:
+- shogijs tenía limitaciones (colocaciones en `hasAnyLegalMove`, `load()`, sin SFEN).
+- shogiops es GPL-3.0-or-later y obligaría a licenciar toda la app como GPL.
+- El modo educativo necesita explicar por qué una jugada es ilegal
+  (`engine/explain.ts`), algo que ninguna biblioteca ofrece.
 
-## Investigación realizada
-Se inspeccionó @huguzturk/shogijs versión 1.0.3.
-La revisión se hizo en /tmp/shogijs-review, sin instalar la biblioteca
-en el proyecto.
+## Reglas implementadas
+Movimientos de todas las piezas (promocionadas o no), capturas y mano,
+colocaciones, promoción opcional y obligatoria, nifu, piezas sin movimiento,
+uchifuzume, jaque, jaque mate, derrota sin jugadas legales, sennichite
+(tablas) y jaque perpetuo (pierde quien da jaque).
 
-La biblioteca exporta una clase Shogi e incluye:
-- Generación de movimientos.
-- Capturas y gestión de manos.
-- Promoción.
-- Restricciones de colocación, incluido nifu.
-- Detección de jaque.
-- Intentos de validar movimientos legales y detectar uchifuzume.
-- Detección de jaque mate.
+## Pendiente (siguientes pasos sugeridos)
+1. Jishōgi / impasse (declaración por puntos, regla de 24/27 puntos).
+2. Importar/exportar SFEN y KIF para guardar y compartir partidas.
+3. Guardar la partida en curso (localStorage) y el progreso del usuario.
+4. Lecciones guiadas paso a paso usando `engine/positions.ts` y `engine/explain.ts`.
+5. Más tsume (mate en 1, 3 y 5) y un modo de problemas con puntuación.
+6. Mejorar la IA: quiescencia, tabla de transposición y evaluación de seguridad del rey.
+7. Mover `engine/` a `packages/engine` cuando empiece la app móvil (React Native).
+8. Tests de interfaz (Playwright) para los flujos principales.
 
-## Posibles limitaciones detectadas
-- hasAnyLegalMove() parece comprobar movimientos de piezas, pero no
-  colocaciones desde la mano; hay que verificarlo.
-- load() no parece limpiar el tablero antes de cargar otra posición.
-- isGameOver() solo comprueba el jaque mate.
-- Deben verificarse las reglas y la representación de promoción.
-- No se encontró una función de exportación SFEN en el código inspeccionado.
-- No se debe adoptar como motor principal sin más pruebas.
-
-## Siguiente paso
-1. Guardar una versión recuperable del proyecto con Git.
-2. Revisar una alternativa como shogiops y comprobar su licencia GPL-3.0-or-later.
-3. Comparar las reglas y la API de los motores.
-4. Elegir una solución e integrarla mediante un adaptador, conservando
-   la interfaz y los estilos actuales.
-5. Ejecutar npm run build y probar los casos de jaque, mate, promoción
-   y colocación de piezas.
-
-## Comando de compilación
-cd ~/Projects/shogi/apps/web && npm run build
+## Comandos
+```bash
+cd apps/web
+npm install
+npm test
+npm run build
+```

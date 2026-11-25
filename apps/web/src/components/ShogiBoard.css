@@ -12,7 +12,154 @@
 
 .shogi-turn {
   margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid #d8c5a4;
+  border-radius: 9px;
+  background: #fbf7ee;
   font-weight: 650;
+}
+
+.shogi-turn.in-check {
+  border-color: #c2410c;
+  background: #fff1ec;
+  color: #9a3412;
+}
+
+.shogi-turn.finished {
+  border-color: #2f6b3a;
+  background: #eef6ee;
+  color: #1f4d29;
+}
+
+.muted {
+  color: #777164;
+  font-size: 0.9rem;
+}
+
+.piece-info-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.piece-info-head h3 {
+  margin: 0;
+}
+
+.piece-info-head small {
+  color: #777164;
+}
+
+.piece-info-kanji {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 48px;
+  clip-path: polygon(50% 0, 96% 20%, 87% 100%, 13% 100%, 4% 20%);
+  background: linear-gradient(135deg, #fff7e8, #ead9b9);
+  color: #3f3023;
+  font-family: serif;
+  font-size: 1.6rem;
+}
+
+.piece-info-kanji.promoted {
+  color: #b03a2b;
+}
+
+.piece-info p + p {
+  margin-top: 6px;
+}
+
+.shogi-controls {
+  display: grid;
+  gap: 10px;
+}
+
+.shogi-controls h3 {
+  margin-bottom: 0;
+}
+
+.shogi-controls label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.shogi-controls label.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.shogi-controls select {
+  padding: 7px 8px;
+  border: 1px solid #cdbb9a;
+  border-radius: 6px;
+  background: #fffdf8;
+  font: inherit;
+  font-weight: 500;
+}
+
+.shogi-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.shogi-buttons button,
+.practice-list button {
+  padding: 7px 10px;
+  border: 1px solid #b9ad98;
+  border-radius: 6px;
+  background: #f5efe4;
+  color: #413326;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.shogi-buttons button:first-child {
+  border-color: #2459a9;
+  background: #2563eb;
+  color: white;
+}
+
+.shogi-buttons button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.practice-list {
+  display: grid;
+  gap: 6px;
+}
+
+.practice-list button {
+  text-align: left;
+}
+
+.practice-list button.active {
+  border-color: #2f6b3a;
+  background: #eef6ee;
+}
+
+.practice-note {
+  margin-top: 8px !important;
+}
+
+.kifu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 10px;
+  max-height: 220px;
+  margin: 0;
+  padding-left: 2.2em;
+  overflow-y: auto;
+  font-family: serif;
+  font-size: 0.95rem;
 }
 
 .shogi-layout {
@@ -56,98 +203,6 @@
   line-height: 1.5;
 }
 
-.muted-message {
-  color: #777164;
-}
-
-.player-label {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 4px;
-}
-
-.player-label > div {
-  display: grid;
-  gap: 4px;
-}
-
-.player-label strong {
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.player-label > div > span {
-  color: #858579;
-  font-size: 10px;
-}
-
-.player-stone {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid #ded5c4;
-  font-family: serif;
-  font-size: 21px;
-}
-
-.gote-stone {
-  color: #f7f1e4;
-  background: #554637;
-  border-color: #554637;
-}
-
-.sente-stone {
-  color: #554637;
-  background: #eee2c9;
-}
-
-.turn-indicator {
-  margin-left: auto;
-  padding: 7px 10px;
-  border: 1px solid #d8d7c8;
-  color: #687554;
-  font-size: 9px;
-  letter-spacing: 0.4px;
-}
-
-.board-frame {
-  padding: 9px;
-  background: #b99a6c;
-  border: 1px solid #a78a5f;
-  box-shadow: 0 4px 0 #a78a5f, 0 12px 24px #59442b12;
-}
-
-.board-coordinates {
-  display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  color: #55442f;
-  font-family: serif;
-  font-size: 10px;
-  text-align: center;
-}
-
-.top-coordinates {
-  padding: 0 0 6px;
-}
-
-.bottom-coordinates {
-  padding: 6px 0 0;
-}
-
-.board-middle {
-  display: grid;
-  grid-template-columns: 15px minmax(0, 1fr);
-  gap: 4px;
-}
-
-.side-coordinates {
-  grid-template-columns: 1fr;
-  grid-template-rows: repeat(9, minmax(0, 1fr));
-  align-items: center;
-}
-
 .shogi-grid {
   display: grid;
   grid-template-columns: repeat(9, minmax(0, 1fr));
@@ -159,8 +214,19 @@
   background: var(--wood-light);
 }
 
+.shogi-row {
+  display: contents;
+}
+
 .shogi-square {
+  position: relative;
   display: grid;
+  padding: 0;
+  border-top: 0;
+  border-left: 0;
+  border-radius: 0;
+  font: inherit;
+  color: inherit;
   place-items: center;
   min-width: 0;
   min-height: 0;
@@ -186,19 +252,17 @@
   user-select: none;
 }
 
-.shogi-piece.sente {
+.shogi-piece {
   background: linear-gradient(135deg, #fff7e8, #ead9b9);
   color: #3f3023;
 }
 
-.shogi-piece.gote {
-  background: linear-gradient(135deg, #fff7e8, #ead9b9);
-  color: #3f3023;
+.shogi-piece.upside-down {
   transform: rotate(180deg);
 }
 
-.shogi-piece.promoted span {
-  color: #a84739;
+.shogi-piece.promoted {
+  color: #b03a2b;
 }
 
 @media (min-width: 760px) {
@@ -215,6 +279,42 @@
 .shogi-square.selected-gote {
   background: #fecaca;
   box-shadow: inset 0 0 0 3px #dc2626;
+}
+
+.shogi-square:hover {
+  background: #f3e3c3;
+}
+
+.shogi-square.last-move {
+  background: #e9d48f;
+}
+
+.shogi-square.in-check {
+  background: #f8b4a8;
+  box-shadow: inset 0 0 0 3px #c2410c;
+}
+
+.shogi-square.pending {
+  box-shadow: inset 0 0 0 3px #7c3aed;
+}
+
+.shogi-square.move-hint::after {
+  content: '';
+  position: absolute;
+  width: 26%;
+  height: 26%;
+  border-radius: 50%;
+  background: #2f6b3a99;
+  pointer-events: none;
+}
+
+.shogi-square.capture-hint::after {
+  content: '';
+  position: absolute;
+  inset: 6%;
+  border: 3px solid #2f6b3acc;
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 .shogi-hand {
@@ -234,6 +334,14 @@
 
 .shogi-hand.gote {
   border-left: 4px solid #dc2626;
+}
+
+.shogi-hand.active {
+  box-shadow: 0 0 0 2px #d8c5a4;
+}
+
+.shogi-hand strong {
+  font-size: 0.9rem;
 }
 
 .shogi-hand-pieces {
@@ -301,7 +409,7 @@
   cursor: pointer;
 }
 
-.promotion-buttons .secondary-promotion {
+.promotion-buttons .secondary {
   border-color: #b9ad98;
   background: #f5efe4;
   color: #413326;
@@ -311,7 +419,22 @@
   filter: brightness(0.96);
 }
 
+.promotion-preview {
+  display: block;
+  margin-bottom: 6px;
+  font-family: serif;
+  font-size: 1.6rem;
+}
+
+.promotion-preview em {
+  color: #b03a2b;
+  font-style: normal;
+}
+
 .promotion-buttons button:focus-visible,
+.shogi-controls select:focus-visible,
+.shogi-buttons button:focus-visible,
+.practice-list button:focus-visible,
 .shogi-hand-piece:focus-visible,
 .shogi-square:focus-visible {
   outline: 3px solid #0f766e;

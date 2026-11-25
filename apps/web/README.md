@@ -1,32 +1,44 @@
-# React + TypeScript + Vite
+# Shōgi — aplicación web
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Aplicación en React + TypeScript + Vite para aprender y jugar shōgi.
 
-Currently, two official plugins are available:
+## Comandos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install       # instalar dependencias
+npm run dev       # servidor de desarrollo
+npm test          # tests del motor (Vitest)
+npm run lint      # análisis estático (oxlint)
+npm run build     # compilación de producción en dist/
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Estructura
+
+```
+src/
+├── engine/              Motor de reglas puro (sin React), con tests
+│   ├── types.ts         Tipos: piezas, tablero, posición, movimientos
+│   ├── rules.ts         Movimientos, jaque, promoción, colocaciones, nifu, uchifuzume
+│   ├── game.ts          Partida: historial, deshacer, mate, sennichite, jaque perpetuo
+│   ├── explain.ts       Explicaciones educativas de jugadas legales e ilegales
+│   ├── notation.ts      Notación kifu (▲7六歩) y USI (7g7f)
+│   ├── pieces.ts        Nombres, kanji y descripciones de las piezas
+│   ├── positions.ts     Posiciones de práctica y tsume
+│   ├── ai.ts            Oponente: búsqueda negamax con poda alfa-beta, 3 niveles
+│   ├── ai.worker.ts     Ejecuta la IA en un Web Worker
+│   └── rules.test.ts    Tests, incluido perft hasta profundidad 3
+├── hooks/useAiPlayer.ts Comunicación con el worker de la IA
+├── components/
+│   ├── ShogiBoard.tsx   Tablero interactivo, manos, panel y controles
+│   └── PieceGuide.tsx   Guía de piezas con diagramas de movimiento
+└── App.tsx              Página principal
+```
+
+## Coordenadas
+
+El tablero se guarda como una matriz `board[row][col]`:
+
+- `row 0` es la fila 一 (lado de Gote) y `row 8` la fila 九 (lado de Sente).
+- `col 0` es la columna 9 y `col 8` la columna 1.
+
+Así, la casilla 7六 es `{ row: 5, col: 2 }`.

@@ -1,0 +1,155 @@
+.piece-guide {
+  display: grid;
+  gap: 18px;
+}
+
+.piece-guide-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.piece-guide-toolbar button {
+  padding: 8px 14px;
+  border: 1px solid #cdbb9a;
+  border-radius: 999px;
+  background: #fffdf8;
+  color: #413326;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.piece-guide-toolbar button.active {
+  border-color: #413326;
+  background: #413326;
+  color: #fff7e8;
+}
+
+.piece-guide-toolbar button:focus-visible {
+  outline: 3px solid #0f766e;
+  outline-offset: 2px;
+}
+
+.piece-guide-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: #777164;
+  font-size: 0.85rem;
+}
+
+.piece-guide-legend i {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-left: 8px;
+  border-radius: 3px;
+}
+
+.piece-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.piece-card {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 14px;
+  border: 1px solid #e4d6bd;
+  border-radius: 10px;
+  background: #fffdf8;
+}
+
+.piece-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.piece-card small {
+  color: #777164;
+}
+
+.piece-card p {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.piece-card .piece-tip {
+  color: #5f5a4e;
+  font-style: italic;
+}
+
+.move-diagram {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  width: 112px;
+  aspect-ratio: 1;
+  border-top: 1px solid #8e704a;
+  border-left: 1px solid #8e704a;
+  background: #ead6ad;
+}
+
+.move-diagram span {
+  display: grid;
+  place-items: center;
+  border-right: 1px solid #8e704a;
+  border-bottom: 1px solid #8e704a;
+  font-family: serif;
+  font-size: 15px;
+}
+
+.move-diagram .center {
+  background: #fff7e8;
+  color: #3f3023;
+  font-weight: 700;
+}
+
+.move-diagram .step,
+.piece-guide-legend .step {
+  background: #2f6b3a;
+}
+
+.move-diagram .slide,
+.piece-guide-legend .slide {
+  background: #7fae86;
+}
+
+.rules-summary {
+  padding: 16px 18px;
+  border: 1px solid #e4d6bd;
+  border-radius: 10px;
+  background: #fbf7ee;
+}
+
+.rules-summary h3 {
+  margin: 0 0 8px;
+}
+
+.rules-summary ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 1.2em;
+  line-height: 1.5;
+}
+
+@media (max-width: 420px) {
+  .piece-card {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  .move-diagram {
+    width: 88px;
+  }
+
+  .piece-guide-legend {
+    margin-left: 0;
+  }
+}
