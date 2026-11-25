@@ -39,6 +39,8 @@ jobs:
           # (Settings → Secrets and variables → Actions → Variables).
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://jmojorddnjgxqjnpkvcs.supabase.co' }}
           VITE_SUPABASE_KEY: ${{ vars.VITE_SUPABASE_KEY || 'sb_publishable_O5sUEAooXq6wNq9Powzbmg_JzWdMHNY' }}
+          # Juego en línea: oculto hasta instalar la migración 2 y la Edge Function.
+          VITE_SUPABASE_ONLINE: ${{ vars.VITE_SUPABASE_ONLINE || 'false' }}
       - name: Página 404 (por si alguien entra a una ruta inexistente)
         run: cp apps/web/dist/index.html apps/web/dist/404.html
       - uses: actions/upload-pages-artifact@v3

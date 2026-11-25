@@ -156,6 +156,11 @@ export function createSupabaseBackend({ url, key, storage, redirectTo }: Supabas
         options: { data: { username: name }, ...(redirectTo ? { emailRedirectTo: redirectTo } : {}) },
       })
       if (error) fail(error)
+      // Si el correo ya tiene cuenta, Supabase no lo dice (por privacidad) pero
+      // devuelve un usuario sin identidades: lo avisamos para no confundir.
+      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        throw new ApiError(409, 'Ya existe una cuenta con ese correo. Inicia sesión o recupera tu contraseña.')
+      }
       if (!data.session || !data.user) return { account: null, needsConfirmation: true }
       return { account: await profileFor(data.user.id, data.user.email ?? email), needsConfirmation: false }
     },
@@ -168,6 +173,36 @@ export function createSupabaseBackend({ url, key, storage, redirectTo }: Supabas
 
     async signOut() {
       await supabase.auth.signOut()
+    },
+
+    /** Envía un correo con un enlace para elegir una contraseña nueva. */
+    async requestPasswordReset(email: string) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), redirectTo ? { redirectTo } : undefined)
+      if (error) fail(error)
+    },
+
+    /** Vuelve a enviar el correo de confirmación de la cuenta. */
+    async resendConfirmation(email: string) {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email.trim(),
+        ...(redirectTo ? { options: { emailRedirectTo: redirectTo } } : {}),
+      })
+      if (error) fail(error)
+    },
+
+    /** Avisa cuando se vuelve a la app desde el enlace de "recuperar contraseña". */
+    onPasswordRecovery(callback: () => void): () => void {
+      const { data } = supabase.auth.onAuthStateChange((event) => {
+        if (event === 'PASSWORD_RECOVERY') callback()
+      })
+      return () => data.subscription.unsubscribe()
+    },
+
+    /** Fija una contraseña nueva (tras entrar con el enlace de recuperación). */
+    async setNewPassword(password: string) {
+      const { error } = await supabase.auth.updateUser({ password })
+      if (error) fail(error)
     },
 
     /** Juego en línea: tabla online_games + Realtime + Edge Function "online-move". */

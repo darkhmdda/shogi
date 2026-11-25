@@ -38,8 +38,12 @@ export const BACKEND: Backend = SUPABASE_URL && SUPABASE_KEY ? 'supabase' : API_
 export const ACCOUNTS_AVAILABLE = BACKEND !== null
 /** ¿Se entra con correo (Supabase) en lugar de con nombre de usuario? */
 export const LOGIN_WITH_EMAIL = BACKEND === 'supabase'
-/** ¿Hay juego en línea? (con Supabase necesita la Edge Function "online-move"). */
-export const ONLINE_AVAILABLE = BACKEND !== null
+/**
+ * ¿Hay juego en línea? Con Supabase hace falta haber instalado la migración 2
+ * y la Edge Function "online-move"; se puede ocultar con VITE_SUPABASE_ONLINE=false.
+ */
+export const ONLINE_AVAILABLE =
+  BACKEND === 'fastapi' || (BACKEND === 'supabase' && import.meta.env.VITE_SUPABASE_ONLINE !== 'false')
 
 export type Account = { username: string; email?: string; token?: string }
 
@@ -51,8 +55,9 @@ const supabaseReady: Promise<SupabaseBackend | null> =
         supabase = createSupabaseBackend({
           url: SUPABASE_URL!,
           key: SUPABASE_KEY!,
-          // El enlace de confirmación del correo vuelve a esta misma web.
-          redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}#cuenta`,
+          // Los enlaces de los correos vuelven a esta misma web. Sin "#…": Supabase
+          // añade la sesión al final de la dirección y un "#" previo la estropea.
+          redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`,
         })
         return supabase
       })
@@ -100,6 +105,12 @@ const client =
 
 supabaseReady.then((backend) => {
   if (!backend) return
+  backend.onPasswordRecovery(() => {
+    recovering = true
+    listeners.forEach((listener) => listener())
+    // Lleva a la sección de la cuenta para elegir la contraseña nueva.
+    window.location.hash = '#cuenta'
+  })
   backend.currentAccount().then((current) => current && setAccount(current))
   backend.onAuthChange((next) => {
     if (next?.username !== account?.username) setAccount(next)
@@ -153,6 +164,44 @@ export async function authenticate(
     setAccount(await client[mode](username, password))
   }
   return { needsConfirmation: false }
+}
+
+// ---------------------------------------------------------------------------
+// Recuperar la contraseña y confirmar el correo (solo Supabase)
+// ---------------------------------------------------------------------------
+
+let recovering = false
+
+/** ¿Se ha vuelto a la app desde el enlace de "recuperar contraseña"? */
+export function useRecoveringPassword(): boolean {
+  return useSyncExternalStore(
+    (listener) => {
+      listeners.add(listener)
+      return () => listeners.delete(listener)
+    },
+    () => recovering,
+    () => recovering,
+  )
+}
+
+export async function requestPasswordReset(email: string) {
+  await supabaseReady
+  if (!supabase) throw new Error('Esta opción solo está disponible con Supabase.')
+  await supabase.requestPasswordReset(email)
+}
+
+export async function resendConfirmation(email: string) {
+  await supabaseReady
+  if (!supabase) throw new Error('Esta opción solo está disponible con Supabase.')
+  await supabase.resendConfirmation(email)
+}
+
+export async function setNewPassword(password: string) {
+  await supabaseReady
+  if (!supabase) return
+  await supabase.setNewPassword(password)
+  recovering = false
+  listeners.forEach((listener) => listener())
 }
 
 export async function changePassword(current: string, next: string) {

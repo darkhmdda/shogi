@@ -7,8 +7,12 @@ import {
   deleteAccount,
   listGames,
   logout,
+  requestPasswordReset,
+  resendConfirmation,
+  setNewPassword as saveRecoveredPassword,
   syncProgress,
   useAccount,
+  useRecoveringPassword,
   useGamesVersion,
   type SavedGame,
 } from '../api'
@@ -26,6 +30,8 @@ const REASONS: Record<string, string> = {
 /** Cuenta de usuario: sincroniza el progreso y guarda las partidas en el servidor. */
 export default function AccountPanel() {
   const account = useAccount()
+  const recovering = useRecoveringPassword()
+  const [recoveryPassword, setRecoveryPassword] = useState('')
   const gamesVersion = useGamesVersion()
   const progress = useProgress()
   const [mode, setMode] = useState<'login' | 'register'>('login')
@@ -81,6 +87,64 @@ export default function AccountPanel() {
     } finally {
       setBusy(false)
     }
+  }
+
+  async function emailAction(action: (email: string) => Promise<void>, done: string) {
+    if (!email.trim()) {
+      setStatus('Escribe primero tu correo electrónico.')
+      return
+    }
+    setBusy(true)
+    setStatus(null)
+    try {
+      await action(email)
+      setStatus(done)
+    } catch (error) {
+      setStatus((error as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (recovering) {
+    return (
+      <form
+        className="account-form shogi-panel-section"
+        onSubmit={async (event) => {
+          event.preventDefault()
+          setBusy(true)
+          try {
+            await saveRecoveredPassword(recoveryPassword)
+            setRecoveryPassword('')
+            setStatus('Contraseña cambiada. Ya tienes la sesión iniciada.')
+          } catch (error) {
+            setStatus((error as Error).message)
+          } finally {
+            setBusy(false)
+          }
+        }}
+      >
+        <h3>Elige tu nueva contraseña</h3>
+        <p className="muted">Has entrado con el enlace de recuperación. Escribe la contraseña que quieres usar a partir de ahora.</p>
+        <label>
+          Contraseña nueva (mínimo 8 caracteres)
+          <input
+            type="password"
+            value={recoveryPassword}
+            onChange={(event) => setRecoveryPassword(event.target.value)}
+            autoComplete="new-password"
+            minLength={8}
+            required
+          />
+        </label>
+        <div className="shogi-buttons">
+          <button type="submit" disabled={busy}>
+            Guardar contraseña
+          </button>
+        </div>
+        {status && <p className="training-feedback" role="status">{status}</p>}
+      </form>
+    )
   }
 
   if (!account) {
@@ -140,6 +204,36 @@ export default function AccountPanel() {
             {busy ? 'Conectando…' : mode === 'register' ? 'Crear cuenta' : 'Entrar'}
           </button>
         </div>
+        {LOGIN_WITH_EMAIL && mode === 'login' && (
+          <div className="account-links">
+            <button
+              type="button"
+              className="link-button"
+              disabled={busy}
+              onClick={() =>
+                emailAction(
+                  requestPasswordReset,
+                  `Si existe una cuenta con ${email.trim()}, te llegará un correo con un enlace para elegir una contraseña nueva. Revisa también el spam.`,
+                )
+              }
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+            <button
+              type="button"
+              className="link-button"
+              disabled={busy}
+              onClick={() =>
+                emailAction(
+                  resendConfirmation,
+                  `Si la cuenta de ${email.trim()} está pendiente de confirmar, te hemos vuelto a enviar el correo.`,
+                )
+              }
+            >
+              Reenviar el correo de confirmación
+            </button>
+          </div>
+        )}
         {status && <p className="training-feedback" role="status">{status}</p>}
       </form>
     )

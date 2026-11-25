@@ -301,3 +301,19 @@
   background: #fff1ec;
   color: #9a3412;
 }
+
+.account-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-size: 0.9rem;
+}
+
+.account-links .link-button {
+  font-weight: 500;
+}
+
+.link-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
