@@ -3,8 +3,11 @@
 ## Estado actual
 - Monorepo con npm workspaces: `packages/engine` (motor) y `apps/web` (web).
 - Motor propio con 68 tests (perft, reglas, lecciones, tsume, SFEN/KIF, IA).
-- IA: búsqueda iterativa con tiempo límite, alfa-beta, quiescencia, tabla de
-  transposición, libro de aperturas. Corre en un Web Worker.
+- IA: búsqueda iterativa con tiempo límite, alfa-beta con PVS, movimiento nulo,
+  reducciones de jugadas tardías (LMR), historia y jugadas asesinas, quiescencia,
+  tabla de transposición, seguridad del rey en la evaluación y libro de aperturas.
+  Corre en un Web Worker. Frente a la versión anterior: 23 de 40 partidas
+  decididas y 1-2 jugadas más de profundidad en el mismo tiempo.
 - Web completa: partidas, lecciones, tsume, guía de piezas, impasse, SFEN/KIF,
   guardado automático, progreso y cuenta opcional (VITE_API_URL).
 - Backend FastAPI en `backend/` (10 tests, probados también contra PostgreSQL).
