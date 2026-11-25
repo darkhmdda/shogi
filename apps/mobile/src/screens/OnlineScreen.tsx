@@ -3,7 +3,7 @@ import { describeMove, emptyBoard, emptyHands, formatMove, isCheck, OWNER_LABEL,
 import { useMoveInput, useOnlineGame } from '@shogi/react'
 import { useEffect, useState } from 'react'
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
-import { getClient, useAccount } from '../account'
+import { getOnlineProvider, useAccount } from '../account'
 import { Board, PromotionPanel } from '../components/Board'
 import { Button, Card, Feedback, Row } from '../components/ui'
 import { colors, spacing } from '../theme'
@@ -27,25 +27,25 @@ function resultText(state: OnlineState): string {
 
 export function OnlineScreen({ onNeedAccount }: { onNeedAccount: () => void }) {
   const account = useAccount()
-  const client = getClient()
+  const provider = account ? getOnlineProvider() : null
   const [code, setCode] = useState<string | null>(null)
   const [joinCode, setJoinCode] = useState('')
   const [lobbyError, setLobbyError] = useState<string | null>(null)
   const [myGames, setMyGames] = useState<OnlineState[]>([])
   const [message, setMessage] = useState<string | null>(null)
-  const online = useOnlineGame(client?.online ?? null, code)
+  const online = useOnlineGame(provider, code)
 
   useEffect(() => {
-    if (!account || !client || code) return
+    if (!account || !provider || code) return
     let active = true
-    client.online
+    provider
       .list()
       .then((games) => active && setMyGames(games.filter((g) => g.status !== 'finished')))
       .catch(() => {})
     return () => {
       active = false
     }
-  }, [account, client, code])
+  }, [account, provider, code])
 
   const game = online.game
   const state = online.state
@@ -61,7 +61,7 @@ export function OnlineScreen({ onNeedAccount }: { onNeedAccount: () => void }) {
     onMessage: setMessage,
   })
 
-  if (!account || !client) {
+  if (!account || !provider) {
     return (
       <View style={styles.container}>
         <Card>
@@ -91,9 +91,9 @@ export function OnlineScreen({ onNeedAccount }: { onNeedAccount: () => void }) {
           <Text style={styles.title}>Crear partida</Text>
           <Text style={styles.muted}>Recibirás un código para compartir con tu rival.</Text>
           <Row>
-            <Button title="Lado aleatorio" variant="primary" onPress={() => run(() => client.online.create('random'))} />
-            <Button title="Sente" onPress={() => run(() => client.online.create('sente'))} />
-            <Button title="Gote" onPress={() => run(() => client.online.create('gote'))} />
+            <Button title="Lado aleatorio" variant="primary" onPress={() => run(() => provider.create('random'))} />
+            <Button title="Sente" onPress={() => run(() => provider.create('sente'))} />
+            <Button title="Gote" onPress={() => run(() => provider.create('gote'))} />
           </Row>
         </Card>
         <Card>
@@ -108,7 +108,7 @@ export function OnlineScreen({ onNeedAccount }: { onNeedAccount: () => void }) {
             maxLength={8}
             accessibilityLabel="Código de la partida"
           />
-          <Button title="Unirse" onPress={() => run(() => client.online.join(joinCode.trim().toUpperCase()))} />
+          <Button title="Unirse" onPress={() => run(() => provider.join(joinCode.trim().toUpperCase()))} />
         </Card>
         {myGames.length > 0 && (
           <Card>

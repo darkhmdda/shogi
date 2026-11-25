@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
-import { API_URL, loadAccount } from './src/account'
+import { ACCOUNTS_AVAILABLE, loadAccount } from './src/account'
 import { loadProgress } from './src/progress'
 import { AccountScreen } from './src/screens/AccountScreen'
 import { OnlineScreen } from './src/screens/OnlineScreen'
@@ -19,7 +19,7 @@ const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: 'lessons', icon: '書', label: 'Aprender' },
   { id: 'puzzles', icon: '詰', label: 'Problemas' },
   { id: 'play', icon: '対', label: 'Jugar' },
-  ...(API_URL
+  ...(ACCOUNTS_AVAILABLE
     ? [
         { id: 'online' as const, icon: '網', label: 'En línea' },
         { id: 'account' as const, icon: '人', label: 'Cuenta' },

@@ -18,10 +18,17 @@ que la web y el backend.
 
 ## Cuenta (opcional)
 
-Con `EXPO_PUBLIC_API_URL` definida (ver `.env.example`) aparece la pestaña
-**Cuenta**: el progreso se sincroniza con el servidor —el mismo que usa la
-web— y las partidas terminadas se guardan. En un teléfono físico usa la IP de
-tu ordenador en la red local, no `localhost`.
+Por defecto la app usa el mismo proyecto de Supabase que la web publicada
+(`src/config.ts`), así que la cuenta, el progreso y las partidas en línea son
+los mismos en el móvil y en la web: incluso se puede jugar móvil contra web.
+
+- Entrar con correo y contraseña; crear cuenta con nombre de usuario público.
+- ¿Olvidaste tu contraseña? / reenviar el correo de confirmación (los enlaces
+  se abren en la web).
+- Cambiar la contraseña y borrar la cuenta (pestaña Cuenta → Seguridad).
+
+Para usar otro servidor: `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_KEY`,
+o la API propia con `EXPO_PUBLIC_API_URL` (dejando `EXPO_PUBLIC_SUPABASE_URL=`).
 
 ## Uso
 
