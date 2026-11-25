@@ -2,8 +2,10 @@
 // - Navegación: primero la red; si falla, la copia guardada de la página.
 // - Archivos de la propia web (JS, CSS, iconos): primero la caché.
 // - Peticiones a la API (otro origen): nunca se guardan.
-const CACHE = 'shogi-v1'
-const CORE = ['/', '/index.html', '/manifest.webmanifest', '/favicon.svg', '/icon-192.png']
+// Las rutas son relativas al propio sw.js, así funciona en la raíz o en una
+// subcarpeta (por ejemplo /shogi/ en GitHub Pages).
+const CACHE = 'shogi-v2'
+const CORE = ['./', './index.html', './manifest.webmanifest', './favicon.svg', './icon-192.png']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(CORE)).then(() => self.skipWaiting()))
@@ -29,10 +31,10 @@ self.addEventListener('fetch', (event) => {
       fetch(request)
         .then((response) => {
           const copy = response.clone()
-          caches.open(CACHE).then((cache) => cache.put('/index.html', copy))
+          caches.open(CACHE).then((cache) => cache.put('./index.html', copy))
           return response
         })
-        .catch(() => caches.match('/index.html')),
+        .catch(() => caches.match('./index.html')),
     )
     return
   }

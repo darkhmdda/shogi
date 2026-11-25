@@ -95,7 +95,8 @@ sincronizada. Backend y base de datos con migraciones, listos para desplegar
 
 Pendiente, a decidir por el responsable del proyecto:
 
-- Publicar en un hosting (ver [docs/despliegue.md](docs/despliegue.md)).
+- Activar GitHub Pages (Settings → Pages → Source: GitHub Actions); la web se
+  publica sola en cada push a `main`. Ver [docs/despliegue.md](docs/despliegue.md).
 - Probar la app móvil en dispositivos reales y publicarla con EAS.
 
 ## Licencia

@@ -18,6 +18,21 @@ las actualizaciones del esquema se aplican solas.
 > Cambia las contraseñas de `docker-compose.yml` antes de usarlo fuera de tu
 > ordenador.
 
+## En GitHub Pages (web, gratis y siempre encendida)
+
+El workflow [`.github/workflows/pages.yml`](../.github/workflows/pages.yml)
+publica la web en `https://<usuario>.github.io/<repositorio>/` en cada push a
+`main`. Funciona todo lo que no necesita servidor: lecciones, problemas,
+partidas contra la máquina, progreso local y uso sin conexión.
+
+Una sola vez: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+Después, cada push a `main` actualiza la web en un par de minutos (pestaña
+*Actions*, workflow "Publicar web").
+
+Para activar cuentas y juego en línea, define la variable de repositorio
+`VITE_API_URL` (Settings → Secrets and variables → Actions → Variables) con la
+URL del servidor y vuelve a ejecutar el workflow.
+
 ## En Render (gratis para empezar)
 
 El archivo [`render.yaml`](../render.yaml) describe la base de datos, la API y
