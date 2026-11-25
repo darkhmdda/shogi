@@ -38,7 +38,7 @@ test('se resuelve un problema de mate en 1', async ({ page }) => {
   await puzzles.locator('.shogi-hand-piece').first().click()
   await square(puzzles, '5二').click()
   await expect(puzzles.locator('.training-feedback')).toContainText('Problema resuelto')
-  await expect(page.locator('.progress-strip')).toContainText('1/20')
+  await expect(page.locator('.progress-strip')).toContainText('1/32')
 })
 
 test('el tsume exige dar jaque', async ({ page }) => {
@@ -84,7 +84,7 @@ test('se carga una posición SFEN', async ({ page }) => {
 
 test('se resuelve un mate en 5 contra la defensa automática', async ({ page }) => {
   const puzzles = page.locator('#problemas')
-  await puzzles.locator('.training-chip', { hasText: /^16$/ }).click()
+  await puzzles.locator('.training-chip', { hasText: /^28$/ }).click()
   await expect(puzzles.locator('.training-step')).toContainText('mate en 5')
   await puzzles.getByRole('button', { name: 'Ver solución' }).click()
   const solution = await puzzles.locator('.training-hint', { hasText: 'Solución' }).innerText()

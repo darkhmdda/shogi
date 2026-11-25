@@ -19,7 +19,7 @@
 - Migraciones con Alembic (`backend/migrations`); `database/schema.sql` se genera de ellas.
 - Tests de interfaz con Playwright (`apps/web/e2e`, escritorio y móvil).
 - Documentación en `docs/` (arquitectura, despliegue, contribuir).
-- 12 lecciones y 20 tsume (mate en 1, 3 y 5).
+- 16 lecciones y 32 tsume (15 de mate en 1, 12 de mate en 3, 5 de mate en 5).
 - Seguridad: límite de intentos de login, cambio de contraseña, borrado de cuenta.
 - PWA: manifiesto, iconos propios y service worker (funciona sin conexión).
 - `render.yaml` para desplegar BD + API + web en Render (sin probar en real).

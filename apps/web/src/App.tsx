@@ -46,7 +46,7 @@ const features = [
   {
     number: '02',
     title: 'Resuelve problemas',
-    description: 'Veinte problemas de mate (tsume) en una, tres y cinco jugadas, con pistas y soluciones.',
+    description: 'Treinta y dos problemas de mate (tsume) en una, tres y cinco jugadas, con pistas y soluciones.',
     icon: '歩',
     action: 'Resolver problemas',
     href: '#problemas',

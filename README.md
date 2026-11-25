@@ -14,7 +14,7 @@ Crear una aplicación que permita a principiantes aprender las reglas del shōgi
   las reglas: promoción, colocaciones, nifu, uchifuzume, jaque mate,
   sennichite, jaque perpetuo e impasse (jishōgi, regla de 27 puntos).
 - Dieciséis lecciones guiadas (de las reglas básicas a aperturas, castillos, defensa, ataques dobles y mates) con objetivos que comprueba el motor.
-- Veinte problemas de mate (tsume) en 1, 3 y 5 jugadas, verificados por un
+- Treinta y dos problemas de mate (tsume) en 1, 3 y 5 jugadas, verificados por un
   solucionador propio.
 - Guía de piezas, explicaciones de jugadas ilegales, pistas de la máquina.
 - Registro kifu, exportación KIF, importación/exportación SFEN y guardado
