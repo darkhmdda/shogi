@@ -82,3 +82,30 @@ class Game(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     user: Mapped[User] = relationship(back_populates="games")
+
+
+class OnlineGame(Base):
+    """Partida en línea entre dos usuarios. El servidor valida cada jugada."""
+
+    __tablename__ = "online_games"
+    __table_args__ = (
+        CheckConstraint("status IN ('waiting', 'active', 'finished')", name="ck_online_status"),
+        CheckConstraint("winner IN ('sente', 'gote')", name="ck_online_winner"),
+        Index("ix_online_games_sente", "sente_id"),
+        Index("ix_online_games_gote", "gote_id"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(8), unique=True, index=True)
+    sente_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    gote_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    start_sfen: Mapped[str] = mapped_column(String(160))
+    moves: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(10), default="waiting")
+    winner: Mapped[str | None] = mapped_column(String(5), nullable=True)
+    reason: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+    sente: Mapped[User | None] = relationship(foreign_keys=[sente_id])
+    gote: Mapped[User | None] = relationship(foreign_keys=[gote_id])

@@ -19,22 +19,24 @@
                 └──────────┬───────────┘   (@shogi/api)
                            │ HTTPS + Bearer token
                 ┌──────────┴───────────┐
-                │      backend         │  FastAPI + SQLAlchemy
-                │                      │  Migraciones con Alembic
+                │      backend         │  FastAPI + SQLAlchemy + WebSocket
+                │                      │  Reglas en Python (shogi.py)
                 └──────────┬───────────┘
                            │
                 ┌──────────┴───────────┐
-                │     PostgreSQL       │  users, auth_tokens,
-                │                      │  progress, games
+                │     PostgreSQL       │  users, auth_tokens, progress,
+                │                      │  games, online_games
                 └──────────────────────┘
 ```
 
 ## Principios
 
-- **Un solo motor.** Todas las reglas viven en `packages/engine`; la web y el
-  móvil nunca reimplementan lógica de juego. El backend no valida la legalidad
-  de las partidas (solo su formato): las partidas guardadas son del propio
-  usuario y no hay partidas en línea todavía.
+- **Un solo motor en el cliente.** Todas las reglas viven en `packages/engine`;
+  la web y el móvil nunca reimplementan lógica de juego.
+- **El servidor es la autoridad en línea.** Para las partidas entre usuarios,
+  `backend/app/shogi.py` (port de las reglas a Python, verificado con el mismo
+  perft) valida cada jugada, el turno y el resultado. Las partidas guardadas
+  contra la máquina solo se validan en formato: son del propio usuario.
 - **Sin conexión primero.** El progreso y la partida en curso se guardan en el
   dispositivo. La cuenta es opcional; al iniciar sesión, el servidor *fusiona*
   el progreso (unión de lecciones y problemas, máximo de contadores), así que
@@ -74,3 +76,18 @@ al día.
 | Tests de interfaz (Playwright, escritorio y móvil) | `apps/web/e2e` |
 | Tipos de todos los paquetes y la app móvil | `npm run typecheck` |
 | Migraciones de ida y vuelta, modelos sincronizados | CI |
+
+## Partidas en línea
+
+1. Un jugador crea la partida (`POST /online`) y recibe un código de 6 letras.
+2. El rival se une con el código (`POST /online/{code}/join`).
+3. Cada jugada se envía con el número de jugadas que el cliente conoce
+   (`ply`); si no coincide, el servidor responde 409 y el cliente se
+   actualiza. Así no hay jugadas duplicadas ni desfasadas.
+4. El servidor reproduce la partida con sus propias reglas, rechaza jugadas
+   ilegales (422) y detecta mate, sennichite y jaque perpetuo.
+5. Los cambios se envían por WebSocket (`/online/{code}/ws?token=…`) a todos
+   los conectados; si el WebSocket falla, el cliente consulta cada 3 s.
+
+Limitación actual: las conexiones WebSocket viven en memoria, así que la API
+debe ejecutarse en un solo proceso (o añadir Redis pub/sub para escalar).

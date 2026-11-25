@@ -75,5 +75,34 @@ CREATE INDEX ix_games_user_created ON games (user_id, created_at);
 
 INSERT INTO alembic_version (version_num) VALUES ('0001') RETURNING alembic_version.version_num;
 
+-- Running upgrade 0001 -> 0002
+
+CREATE TABLE online_games (
+    id SERIAL NOT NULL, 
+    code VARCHAR(8) NOT NULL, 
+    sente_id INTEGER, 
+    gote_id INTEGER, 
+    start_sfen VARCHAR(160) NOT NULL, 
+    moves TEXT DEFAULT '' NOT NULL, 
+    status VARCHAR(10) DEFAULT 'waiting' NOT NULL, 
+    winner VARCHAR(5), 
+    reason VARCHAR(20), 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+    PRIMARY KEY (id), 
+    CONSTRAINT ck_online_status CHECK (status IN ('waiting', 'active', 'finished')), 
+    CONSTRAINT ck_online_winner CHECK (winner IN ('sente', 'gote')), 
+    FOREIGN KEY(sente_id) REFERENCES users (id) ON DELETE SET NULL, 
+    FOREIGN KEY(gote_id) REFERENCES users (id) ON DELETE SET NULL
+);
+
+CREATE UNIQUE INDEX ix_online_games_code ON online_games (code);
+
+CREATE INDEX ix_online_games_sente ON online_games (sente_id);
+
+CREATE INDEX ix_online_games_gote ON online_games (gote_id);
+
+UPDATE alembic_version SET version_num='0002' WHERE alembic_version.version_num = '0001';
+
 COMMIT;
 

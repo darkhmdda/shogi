@@ -29,6 +29,18 @@ export type SavedGame = GameUpload & { id: number; created_at: string }
 
 export type GameStats = { total: number; won: number; lost: number; drawn: number }
 
+export type OnlineState = {
+  code: string
+  sfen: string
+  moves: string[]
+  status: 'waiting' | 'active' | 'finished'
+  sente: string | null
+  gote: string | null
+  winner: 'sente' | 'gote' | null
+  reason: GameResultReason | null
+  your_side: 'sente' | 'gote' | null
+}
+
 export class ApiError extends Error {
   status: number
 
@@ -101,6 +113,21 @@ export function createApiClient({ baseUrl, getToken, onUnauthorized, fetch: fetc
     listGames: (limit = 10) => request<SavedGame[]>(`/games?limit=${limit}`),
     gameStats: () => request<GameStats>('/games/stats'),
     deleteGame: (id: number) => request<void>(`/games/${id}`, { method: 'DELETE' }),
+
+    online: {
+      create: (side: 'sente' | 'gote' | 'random' = 'random') => request<OnlineState>('/online', json('POST', { side })),
+      list: () => request<OnlineState[]>('/online'),
+      get: (code: string) => request<OnlineState>(`/online/${encodeURIComponent(code)}`),
+      join: (code: string) => request<OnlineState>(`/online/${encodeURIComponent(code)}/join`, { method: 'POST' }),
+      move: (code: string, move: string, ply: number) =>
+        request<OnlineState>(`/online/${encodeURIComponent(code)}/move`, json('POST', { move, ply })),
+      resign: (code: string) => request<OnlineState>(`/online/${encodeURIComponent(code)}/resign`, { method: 'POST' }),
+      /** URL del WebSocket que envía el estado de la partida cada vez que cambia. */
+      socketUrl: (code: string) => {
+        const token = getToken() ?? ''
+        return `${root.replace(/^http/, 'ws')}/online/${encodeURIComponent(code)}/ws?token=${encodeURIComponent(token)}`
+      },
+    },
   }
 }
 

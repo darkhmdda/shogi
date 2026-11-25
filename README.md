@@ -21,8 +21,12 @@ Crear una aplicación que permita a principiantes aprender las reglas del shōgi
   automático de la partida.
 - Progreso local y, con cuenta, sincronizado con el servidor.
 
+**Partidas en línea:** dos personas juegan desde la web con un código de
+partida; las jugadas llegan en tiempo real y el servidor valida cada una.
+
 **Backend** (`backend`): API FastAPI con cuentas, sincronización del progreso
-(fusión sin pérdida de datos entre dispositivos) y partidas guardadas.
+(fusión sin pérdida de datos entre dispositivos), partidas guardadas y
+partidas en línea con reglas validadas en Python.
 
 **Base de datos** (`database`): PostgreSQL con migraciones de Alembic.
 
@@ -81,9 +85,9 @@ PostgreSQL.
 
 ## Estado del proyecto
 
-En desarrollo. Web completa; app móvil, backend y base de datos operativos y
-sincronizados entre sí. Pendiente: partidas en línea entre usuarios, más
-contenido y despliegue público.
+En desarrollo. Web completa con partidas en línea; app móvil, backend y base
+de datos operativos y sincronizados entre sí. Pendiente: partidas en línea en
+la app móvil, más contenido y despliegue público.
 
 ## Licencia
 

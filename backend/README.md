@@ -2,7 +2,8 @@
 
 API en **FastAPI** + **SQLAlchemy 2** sobre **PostgreSQL** (SQLite para desarrollo
 y tests). Gestiona cuentas, sincroniza el progreso de aprendizaje entre
-dispositivos y guarda partidas.
+dispositivos, guarda partidas y organiza partidas en línea entre usuarios,
+validando cada jugada con las reglas del shōgi (`app/shogi.py`).
 
 ## Arrancar en local
 
@@ -38,6 +39,13 @@ Sin `DATABASE_URL` usa SQLite (`shogi.db`). Documentación interactiva en
 | GET | `/games` | Listar partidas |
 | GET | `/games/stats` | Victorias, derrotas y tablas |
 | GET/DELETE | `/games/{id}` | Ver o borrar una partida |
+| POST | `/online` | Crear partida en línea → código |
+| GET | `/online` | Mis partidas en línea |
+| GET | `/online/{code}` | Estado de una partida |
+| POST | `/online/{code}/join` | Unirse con el código |
+| POST | `/online/{code}/move` | Jugar (`{"move": "7g7f", "ply": 0}`), validada en el servidor |
+| POST | `/online/{code}/resign` | Rendirse |
+| WS | `/online/{code}/ws?token=…` | Estado en tiempo real |
 
 Autenticación: cabecera `Authorization: Bearer <token>`.
 

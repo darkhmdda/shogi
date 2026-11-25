@@ -66,13 +66,21 @@ def current_token(credentials: HTTPAuthorizationCredentials | None = Depends(_be
     return credentials.credentials
 
 
-def current_user(token: str = Depends(current_token), session: Session = Depends(get_session)) -> User:
+def user_for_token(session: Session, token: str) -> User | None:
+    """Usuario de un token válido y no caducado, o None."""
     record = session.scalar(select(AuthToken).where(AuthToken.token_hash == _hash_token(token)))
     if record is None:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Sesión no válida.")
+        return None
     expires = record.expires_at
     if expires.tzinfo is None:  # SQLite no guarda la zona horaria.
         expires = expires.replace(tzinfo=timezone.utc)
     if expires < datetime.now(timezone.utc):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "La sesión ha caducado.")
+        return None
     return record.user
+
+
+def current_user(token: str = Depends(current_token), session: Session = Depends(get_session)) -> User:
+    user = user_for_token(session, token)
+    if user is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Sesión no válida o caducada.")
+    return user

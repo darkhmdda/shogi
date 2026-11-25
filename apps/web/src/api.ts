@@ -9,7 +9,7 @@ import {
 import { useSyncExternalStore } from 'react'
 import { getProgress, replaceProgress, subscribe as subscribeProgress } from './progress'
 
-export { ApiError, type SavedGame } from '@shogi/api'
+export { ApiError, type OnlineState, type SavedGame } from '@shogi/api'
 
 /** URL del backend. Si no está configurada, las funciones de cuenta se ocultan. */
 export const API_URL: string | null =
@@ -43,6 +43,11 @@ function setAccount(next: Account | null) {
 const client = API_URL
   ? createApiClient({ baseUrl: API_URL, getToken: () => account?.token ?? null, onUnauthorized: () => setAccount(null) })
   : null
+
+/** Cliente de la API (null si no hay servidor configurado). */
+export function getClient() {
+  return client
+}
 
 export function useAccount(): Account | null {
   return useSyncExternalStore(

@@ -16,6 +16,8 @@
 - Migraciones con Alembic (`backend/migrations`); `database/schema.sql` se genera de ellas.
 - Tests de interfaz con Playwright (`apps/web/e2e`, escritorio y móvil).
 - Documentación en `docs/` (arquitectura, despliegue, contribuir).
+- Partidas en línea (web): `backend/app/routers/online.py` + WebSocket; reglas en
+  Python (`backend/app/shogi.py`, mismo perft que el motor TS).
 - CI en `.github/workflows/ci.yml`: motor, web, e2e, móvil, migraciones y backend con PostgreSQL.
 
 ## Decisión sobre bibliotecas externas
@@ -32,7 +34,7 @@ uchifuzume, jaque, jaque mate, derrota sin jugadas legales, sennichite
 (tablas) y jaque perpetuo (pierde quien da jaque).
 
 ## Pendiente (siguientes pasos sugeridos)
-1. Partidas en línea entre usuarios (WebSockets) con validación en el servidor.
+1. Partidas en línea también en la app móvil.
 2. Más contenido: tsume de 5 jugadas, lecciones de aperturas y castillos.
 3. Despliegue público (las imágenes Docker no se pudieron construir en el
    entorno de desarrollo por límites de red: Docker Hub 429 y sin PyPI en contenedores).

@@ -3,6 +3,7 @@ import './App.css'
 import { useEffect, useState } from 'react'
 import AccountPanel from './components/AccountPanel'
 import Lessons from './components/Lessons'
+import OnlinePlay from './components/OnlinePlay'
 import PieceGuide from './components/PieceGuide'
 import Puzzles from './components/Puzzles'
 import ShogiBoard from './components/ShogiBoard'
@@ -16,7 +17,12 @@ const sections = [
   { icon: '書', label: 'Aprender', href: '#aprender' },
   { icon: '棋', label: 'Practicar', href: '#problemas' },
   { icon: '対', label: 'Jugar', href: '#tablero' },
-  ...(API_URL ? [{ icon: '人', label: 'Cuenta', href: '#cuenta' }] : []),
+  ...(API_URL
+    ? [
+        { icon: '網', label: 'En línea', href: '#en-linea' },
+        { icon: '人', label: 'Cuenta', href: '#cuenta' },
+      ]
+    : []),
 ]
 
 function useHash(): string {
@@ -271,6 +277,22 @@ function App() {
 
           <ShogiBoard />
         </section>
+
+        {API_URL && (
+          <section className="board-section" id="en-linea">
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow">EN LÍNEA</span>
+                <h2>Juega contra otra persona</h2>
+              </div>
+            </div>
+            <p className="board-intro">
+              Crea una partida y comparte el código con tu rival. El servidor
+              comprueba cada jugada con las reglas oficiales.
+            </p>
+            <OnlinePlay />
+          </section>
+        )}
 
         {API_URL && (
           <section className="board-section" id="cuenta">

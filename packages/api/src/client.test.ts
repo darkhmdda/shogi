@@ -41,6 +41,11 @@ describe('cliente de la API', () => {
     await expect(client.listGames()).rejects.toMatchObject({ status: 0 })
   })
 
+  it('construye la URL del WebSocket con el token', () => {
+    const client = createApiClient({ baseUrl: 'https://api.ejemplo.com', getToken: () => 'a b', fetch: mockFetch(200, {}) })
+    expect(client.online.socketUrl('abc123')).toBe('wss://api.ejemplo.com/online/abc123/ws?token=a%20b')
+  })
+
   it('la huella no depende del orden de las claves', () => {
     const games = { played: 0, won: 0, lost: 0, drawn: 0 }
     expect(progressFingerprint({ lessons: { a: '1', b: '2' }, puzzles: {}, games })).toBe(
