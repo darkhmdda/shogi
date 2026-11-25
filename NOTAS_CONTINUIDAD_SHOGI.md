@@ -25,6 +25,13 @@
   Python (`backend/app/shogi.py`, mismo perft que el motor TS).
 - CI en `.github/workflows/ci.yml`: motor, web, e2e, móvil, migraciones y backend con PostgreSQL.
 
+## Publicación actual
+- Web: GitHub Pages (https://darkhmdda.github.io/shogi/), se publica en cada push a main.
+- Servidor: Supabase (proyecto jmojorddnjgxqjnpkvcs). Migraciones en `supabase/migrations`
+  (ejecutadas a mano en el SQL Editor) y Edge Function `online-move` (pegada en el panel;
+  regenerar con `npm run build:function`).
+- Usuarios de prueba: prueba@shogi.test y prueba2@shogi.test (borrar al terminar las pruebas).
+
 ## Decisión sobre bibliotecas externas
 Se descartaron @huguzturk/shogijs y shogiops:
 - shogijs tenía limitaciones (colocaciones en `hasAnyLegalMove`, `load()`, sin SFEN).

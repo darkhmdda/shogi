@@ -17,7 +17,7 @@ export function useOnlineGame(online: OnlineProvider | null, code: string | null
     if (!code || !online) return
 
     let active = true
-    let poll: ReturnType<typeof setInterval> | undefined
+    let timer: ReturnType<typeof setInterval> | undefined
 
     // Los avisos en tiempo real pueden no traer el lado del jugador: se conserva el ya conocido.
     const update = (next: OnlineState) => {
@@ -25,12 +25,16 @@ export function useOnlineGame(online: OnlineProvider | null, code: string | null
       setState((previous) => ({ ...next, your_side: next.your_side ?? previous?.your_side ?? null }))
     }
 
-    const startPolling = () => {
-      clearInterval(poll)
-      poll = setInterval(() => {
+    // Respaldo: aunque haya tiempo real, se consulta la partida de vez en
+    // cuando (cada 10 s), y más a menudo (cada 3 s) si se pierde la conexión.
+    // Así un aviso perdido nunca deja la partida atascada.
+    const poll = (every: number) => {
+      clearInterval(timer)
+      timer = setInterval(() => {
         online.get(code).then(update).catch(() => {})
-      }, 3000)
+      }, every)
     }
+    poll(3000)
 
     online
       .get(code)
@@ -40,18 +44,14 @@ export function useOnlineGame(online: OnlineProvider | null, code: string | null
     const unsubscribe = online.subscribe(code, update, (live) => {
       if (!active) return
       setConnected(live)
-      if (live) {
-        clearInterval(poll)
-        // Por si hubo cambios mientras no había conexión.
-        online.get(code).then(update).catch(() => {})
-      } else {
-        startPolling()
-      }
+      poll(live ? 10_000 : 3000)
+      // Por si hubo cambios mientras no había conexión.
+      if (live) online.get(code).then(update).catch(() => {})
     })
 
     return () => {
       active = false
-      clearInterval(poll)
+      clearInterval(timer)
       unsubscribe()
       setState(null)
       setError(null)
